@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker Explained - Visual Guide</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#131c2f; --panel2:#1a2540; --line:#273352;
+    --text:#e6ecf8; --muted:#93a1c0; --blue:#2496ed; --teal:#22d3b6;
+    --amber:#fbbf24; --red:#f87171; --green:#4ade80; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  code,pre{font-family:Consolas,"Cascadia Code",monospace}
+  a{color:var(--blue)}
+  header.hero{padding:64px 24px 48px;text-align:center;background:radial-gradient(900px 400px at 50% -50%,#1d4ed855,transparent),var(--bg)}
+  .hero h1{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-1px}
+  .hero h1 span{color:var(--blue)}
+  .hero p{max-width:640px;margin:14px auto 0;color:var(--muted);font-size:1.1rem}
+  nav{position:sticky;top:0;z-index:10;background:#0b1220ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;padding:10px 16px;justify-content:center}
+  nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;font-size:.88rem;white-space:nowrap}
+  nav a:hover{background:var(--panel2);color:var(--text)}
+  main{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+  section{padding-top:56px}
+  h2{font-size:1.7rem;margin-bottom:6px}
+  h2 .n{display:inline-block;background:var(--blue);color:#04121f;border-radius:8px;padding:0 10px;margin-right:8px;font-size:1.1rem}
+  .lead{color:var(--muted);margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .big{font-size:2rem}
+  .callout{border-left:4px solid var(--amber);background:#fbbf2414;padding:14px 16px;border-radius:0 10px 10px 0;margin-top:16px}
+  .callout.ok{border-color:var(--green);background:#4ade8014}
+  pre{background:#070c17;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:.88rem;color:#cfe3ff;position:relative}
+  pre .c{color:#6b7a99}
+  .k{color:var(--teal)} .s{color:var(--amber)} .v{color:var(--purple)}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 14px;border-radius:9px}
+  button:hover{border-color:var(--blue)}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#04121f;font-weight:600}
+  button.danger{border-color:#f8717166;color:var(--red)}
+
+  /* VM vs container */
+  .stack{display:flex;flex-direction:column;gap:4px;font-size:.8rem;text-align:center}
+  .stack div{padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2)}
+  .stack .apps{display:flex;gap:4px;background:none;border:none;padding:0}
+  .stack .apps div{flex:1;background:#2496ed33;border-color:#2496ed88}
+  .stack .os{background:#a78bfa22;border-color:#a78bfa77}
+  .stack .hw{background:#33415588}
+  .stack .dk{background:#22d3b622;border-color:#22d3b688}
+  .stack .heavy{padding:18px 8px}
+
+  /* analogy */
+  .analogy{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .analogy .box{flex:1;min-width:150px;text-align:center}
+  .arrow{font-size:1.6rem;color:var(--blue)}
+
+  /* flow */
+  .flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+  .flow .step{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .flow .step b{display:block;color:var(--blue)}
+  .flow .step small{color:var(--muted)}
+  .flow .ar{align-self:center;color:var(--muted);font-size:1.4rem}
+
+  /* simulator */
+  .sim{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.sim{grid-template-columns:1fr}}
+  .term{background:#05080f;border:1px solid var(--line);border-radius:12px;min-height:260px;display:flex;flex-direction:column}
+  .term .bar{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.8rem}
+  .term .out{padding:12px;font-family:Consolas,monospace;font-size:.85rem;white-space:pre-wrap;flex:1;max-height:320px;overflow:auto}
+  .term .out .cmd{color:var(--green)}
+  .term .out .err{color:var(--red)}
+  .host{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:260px}
+  .host h4{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:6px 0}
+  .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);margin:3px;font-size:.85rem}
+  .pill.run{border-color:var(--green);box-shadow:0 0 12px #4ade8033}
+  .pill.stop{border-color:var(--amber);opacity:.75}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .pill.stop .dot{background:var(--amber)}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .empty{color:var(--muted);font-size:.85rem;padding:4px}
+
+  /* dockerfile explainer */
+  .df{display:grid;gap:6px}
+  .df .line{display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:pointer;transition:.15s}
+  .df .line:hover,.df .line.active{border-color:var(--blue);background:var(--panel2)}
+  .df .line code{color:#cfe3ff}
+  .df .line span{color:var(--muted);font-size:.9rem}
+  @media(max-width:640px){.df .line{grid-template-columns:1fr}}
+  .layers{margin-top:14px;display:flex;flex-direction:column-reverse;gap:3px}
+  .layers div{padding:8px 12px;border-radius:7px;font-size:.82rem;background:#2496ed22;border:1px solid #2496ed66;animation:pop .3s}
+  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+
+  /* ports diagram */
+  .ports{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+  .node{padding:14px 18px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);text-align:center;min-width:130px}
+  .node.docker{border-color:var(--teal)}
+  .wire{height:3px;width:60px;background:linear-gradient(90deg,var(--blue),var(--teal));position:relative;border-radius:2px}
+  .wire::after{content:"";position:absolute;top:-4px;left:0;width:10px;height:10px;border-radius:50%;background:#fff;animation:move 1.6s linear infinite}
+  @keyframes move{to{left:calc(100% - 10px)}}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .tabs button.on{background:var(--blue);color:#04121f;border-color:var(--blue);font-weight:600}
+  .hidden{display:none}
+
+  /* cheat table */
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:1px}
+  td code{color:var(--teal);white-space:nowrap}
+  .search{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;margin-bottom:12px}
+
+  /* quiz */
+  .opt{display:block;width:100%;text-align:left;margin:6px 0}
+  .opt.right{border-color:var(--green);background:#4ade8022}
+  .opt.wrong{border-color:var(--red);background:#f8717122}
+
+  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--line)}
+  ul.clean{list-style:none}
+  ul.clean li{padding:4px 0}
+  ul.clean li::before{content:"✔ ";color:var(--green)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="big">🐳</div>
+  <h1>Docker, <span>explained visually</span></h1>
+  <p>Everything a beginner needs: what Docker is, why it exists, how it works, and the commands you will use every day. Scroll down or use the menu.</p>
+</header>
+
+<nav>
+  <a href="#what">What</a><a href="#why">Why</a><a href="#vm">VM vs Container</a>
+  <a href="#parts">Core parts</a><a href="#flow">Workflow</a><a href="#sim">Try it</a>
+  <a href="#dockerfile">Dockerfile</a><a href="#ports">Ports &amp; Volumes</a>
+  <a href="#compose">Compose</a><a href="#cheat">Cheat sheet</a><a href="#quiz">Quiz</a><a href="#path">Roadmap</a>
+</nav>
+
+<main>
+
+<!-- 1 -->
+<section id="what">
+  <h2><span class="n">1</span>What is Docker?</h2>
+  <p class="lead">Docker is a tool that packages your app <b>plus everything it needs</b> (language runtime, libraries, settings) into one portable unit called a <b>container</b>.</p>
+  <div class="card">
+    <div class="tag">Think of a shipping container</div>
+    <div class="analogy">
+      <div class="card box"><div class="big">📦</div><b>Before Docker</b><br><small>Ship goods loose. Every port handles them differently. Things break.</small></div>
+      <div class="arrow">➜</div>
+      <div class="card box"><div class="big">🚢</div><b>With Docker</b><br><small>Put goods in a standard box. Any ship, truck or crane handles it the same way.</small></div>
+    </div>
+    <div class="callout">The classic problem Docker solves: <b>"It works on my machine!"</b> With Docker, if it runs in the container on your laptop, it runs the same on your teammate's PC, a test server, or the cloud.</div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="why">
+  <h2><span class="n">2</span>Why do you need it?</h2>
+  <p class="lead">Real situations where Docker saves you time.</p>
+  <div class="grid g3">
+    <div class="card"><div class="big">🗄️</div><b>Run databases instantly</b><p class="lead" style="margin:6px 0 0">Postgres, MySQL, Redis, MongoDB in one command. No installer, no leftovers on Windows.</p></div>
+    <div class="card"><div class="big">🔁</div><b>Same setup everywhere</b><p class="lead" style="margin:6px 0 0">New teammate? <code>docker compose up</code> and the whole project runs.</p></div>
+    <div class="card"><div class="big">🧪</div><b>Try tools safely</b><p class="lead" style="margin:6px 0 0">Test any software, then delete it. Your laptop stays clean.</p></div>
+    <div class="card"><div class="big">🧩</div><b>Avoid version conflicts</b><p class="lead" style="margin:6px 0 0">Project A needs Node 16, project B needs Node 22? Each gets its own container.</p></div>
+    <div class="card"><div class="big">🚀</div><b>Easy deployment</b><p class="lead" style="margin:6px 0 0">Build an image once, run it on any server or cloud service.</p></div>
+    <div class="card"><div class="big">⚡</div><b>Fast &amp; light</b><p class="lead" style="margin:6px 0 0">Containers start in seconds and use far less memory than full virtual machines.</p></div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="vm">
+  <h2><span class="n">3</span>Virtual Machine vs Container</h2>
+  <p class="lead">Both isolate apps. Containers share the host's OS kernel, so they are much lighter.</p>
+  <div class="grid g2">
+    <div class="card">
+      <b>Virtual Machines</b> <span class="tag">heavy · GBs · minutes to boot</span>
+      <div class="stack" style="margin-top:12px">
+        <div class="apps"><div>App A</div><div>App B</div><div>App C</div></div>
+        <div class="apps"><div class="heavy os">Guest OS</div><div class="heavy os">Guest OS</div><div class="heavy os">Guest OS</div></div>
+        <div class="os">Hypervisor</div>
+        <div class="hw">Host OS + Hardware</div>
+      </div>
+    </div>
+    <div class="card">
+      <b>Docker Containers</b> <span class="tag">light · MBs · seconds to start</span>
+      <div class="stack" style="margin-top:12px">
+        <div class="apps"><div>App A</div><div>App B</div><div>App C</div></div>
+        <div class="dk">Docker Engine</div>
+        <div class="hw">Host OS + Hardware</div>
+      </div>
+    </div>
+  </div>
+  <div class="callout ok">On Windows, Docker Desktop runs a tiny Linux layer using <b>WSL 2</b> behind the scenes. You do not need to manage it.</div>
+</section>
+
+<!-- 4 -->
+<section id="parts">
+  <h2><span class="n">4</span>The core parts</h2>
+  <p class="lead">Click a card to see the cooking analogy.</p>
+  <div class="grid g3" id="partsGrid"></div>
+  <div class="card" id="partInfo" style="margin-top:16px"><span class="empty">Select a concept above.</span></div>
+</section>
+
+<!-- 5 -->
+<section id="flow">
+  <h2><span class="n">5</span>The Docker workflow</h2>
+  <p class="lead">From your code to a running app.</p>
+  <div class="flow">
+    <div class="step"><div class="big">📝</div><b>Dockerfile</b><small>Write the recipe</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">🏗️</div><b>docker build</b><small>Creates an image</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">☁️</div><b>docker push</b><small>Optional: share on Docker Hub</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">▶️</div><b>docker run</b><small>Starts a container</small></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="tag">Image lifecycle of a container</div>
+    <div class="flow" style="margin-top:10px">
+      <div class="step"><b>Created</b></div><div class="ar">➜</div>
+      <div class="step"><b style="color:var(--green)">Running</b></div><div class="ar">⇄</div>
+      <div class="step"><b style="color:var(--amber)">Stopped</b></div><div class="ar">➜</div>
+      <div class="step"><b style="color:var(--red)">Removed</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="sim">
+  <h2><span class="n">6</span>Try it: Docker simulator</h2>
+  <p class="lead">A safe playground. Click the buttons and watch images and containers change. Nothing here touches your real Docker.</p>
+  <div class="sim">
+    <div class="term"><div class="bar">● ● ●&nbsp; simulated terminal</div><div class="out" id="out"></div></div>
+    <div class="host">
+      <h4>📥 Images on your laptop</h4><div id="imgs"></div>
+      <h4>📦 Containers</h4><div id="ctrs"></div>
+    </div>
+  </div>
+  <div class="btnrow">
+    <button class="primary" onclick="sim('pull')">docker pull nginx</button>
+    <button class="primary" onclick="sim('run')">docker run -d -p 8080:80 nginx</button>
+    <button onclick="sim('ps')">docker ps</button>
+    <button onclick="sim('stop')">docker stop web</button>
+    <button onclick="sim('start')">docker start web</button>
+    <button onclick="sim('logs')">docker logs web</button>
+    <button class="danger" onclick="sim('rm')">docker rm web</button>
+    <button class="danger" onclick="sim('rmi')">docker rmi nginx</button>
+    <button onclick="sim('reset')">Reset</button>
+  </div>
+  <div class="callout">Try this order: <b>pull → run → ps → stop → start → rm → rmi</b>. Try running things out of order to see the errors you may hit in real life.</div>
+</section>
+
+<!-- 7 -->
+<section id="dockerfile">
+  <h2><span class="n">7</span>Dockerfile, line by line</h2>
+  <p class="lead">A Dockerfile is the recipe for an image. Click each line to see what it does and watch the image layers build up.</p>
+  <div class="grid g2">
+    <div class="df" id="df"></div>
+    <div class="card">
+      <b>What this line does</b>
+      <p id="dfExplain" class="lead" style="margin-top:8px">Click a line on the left.</p>
+      <div class="tag" style="margin-top:14px">Image layers (bottom = first)</div>
+      <div class="layers" id="layers"></div>
+    </div>
+  </div>
+  <div class="callout ok">Docker caches each layer. Put things that change rarely (installing packages) <b>before</b> things that change often (your code) to make rebuilds fast.</div>
+</section>
+
+<!-- 8 -->
+<section id="ports">
+  <h2><span class="n">8</span>Ports and Volumes</h2>
+  <p class="lead">Two things beginners always ask about.</p>
+  <div class="grid g2">
+    <div class="card">
+      <b>🔌 Ports: <code>-p 8080:80</code></b>
+      <div class="ports">
+        <div class="node">🌐 Browser<br><small>localhost:<b>8080</b></small></div>
+        <div class="wire"></div>
+        <div class="node docker">🐳 Container<br><small>nginx on port <b>80</b></small></div>
+      </div>
+      <p class="lead" style="margin:0">Format is <code>HOST:CONTAINER</code>. The container is isolated, so you must "publish" a port to reach it from your browser.</p>
+    </div>
+    <div class="card">
+      <b>💾 Volumes: <code>-v mydata:/var/lib/postgresql/data</code></b>
+      <div class="ports">
+        <div class="node docker">🐳 Container<br><small>deleted anytime</small></div>
+        <div class="wire"></div>
+        <div class="node">💽 Volume<br><small>data survives</small></div>
+      </div>
+      <p class="lead" style="margin:0">Container storage disappears when the container is removed. A volume keeps data (like database files) safe outside it.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <b>🌱 Environment variables: <code>-e KEY=value</code></b>
+    <p class="lead" style="margin:6px 0 0">Pass settings such as passwords or modes into a container, for example <code>-e POSTGRES_PASSWORD=secret</code>.</p>
+  </div>
+</section>
+
+<!-- 9 -->
+<section id="compose">
+  <h2><span class="n">9</span>Docker Compose</h2>
+  <p class="lead">Run several containers (app + database) with one file and one command.</p>
+  <div class="grid g2">
+    <pre><span class="c"># docker-compose.yml</span>
+<span class="k">services</span>:
+  <span class="k">web</span>:
+    <span class="k">build</span>: .
+    <span class="k">ports</span>:
+      - <span class="s">"3000:3000"</span>
+    <span class="k">environment</span>:
+      <span class="v">DATABASE_URL</span>: <span class="s">postgres://postgres:secret@db:5432/app</span>
+    <span class="k">depends_on</span>:
+      - db
+  <span class="k">db</span>:
+    <span class="k">image</span>: postgres:16
+    <span class="k">environment</span>:
+      <span class="v">POSTGRES_PASSWORD</span>: <span class="s">secret</span>
+    <span class="k">volumes</span>:
+      - dbdata:/var/lib/postgresql/data
+
+<span class="k">volumes</span>:
+  <span class="k">dbdata</span>:</pre>
+    <div class="card">
+      <b>Commands</b>
+      <table style="margin-top:8px">
+        <tr><td><code>docker compose up</code></td><td>Start everything</td></tr>
+        <tr><td><code>docker compose up -d</code></td><td>Start in background</td></tr>
+        <tr><td><code>docker compose logs -f</code></td><td>Watch logs</td></tr>
+        <tr><td><code>docker compose down</code></td><td>Stop and remove</td></tr>
+        <tr><td><code>docker compose down -v</code></td><td>Also delete volumes</td></tr>
+      </table>
+      <div class="callout">Inside compose, containers reach each other by <b>service name</b> (here the app talks to <code>db</code>, not <code>localhost</code>).</div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="cheat">
+  <h2><span class="n">10</span>Command cheat sheet</h2>
+  <p class="lead">Search or filter by category.</p>
+  <input class="search" id="q" placeholder="Search commands, e.g. logs, stop, image...">
+  <div class="tabs" id="cats"></div>
+  <div class="card" style="padding:6px 10px"><table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody id="cheatBody"></tbody></table></div>
+</section>
+
+<!-- 11 -->
+<section id="quiz">
+  <h2><span class="n">11</span>Quick quiz</h2>
+  <p class="lead">Check what you learned.</p>
+  <div class="card" id="quizBox"></div>
+</section>
+
+<!-- 12 -->
+<section id="path">
+  <h2><span class="n">12</span>Your learning roadmap</h2>
+  <p class="lead">Tick items as you go. Progress is saved in your browser.</p>
+  <div class="card"><ul id="road" style="list-style:none"></ul>
+    <div style="margin-top:12px;background:var(--panel2);border-radius:999px;height:12px;overflow:hidden"><div id="bar" style="height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--teal));transition:.3s"></div></div>
+    <small class="lead" id="pct"></small>
+  </div>
+  <div class="callout ok" style="margin-top:16px"><b>Troubleshooting:</b> "Cannot connect to the Docker daemon" means Docker Desktop is not running. Start it and wait for "Engine running". If a port is busy, change the left number, for example <code>-p 8081:80</code>.</div>
+</section>
+
+</main>
+<footer>Docker learning mockup · open this file in any browser · no internet needed</footer>
+
+<script>
+/* ---------- core parts ---------- */
+const parts=[
+ {i:'🖼️',t:'Image',d:'A read-only template containing your app and its dependencies.',a:'Like a <b>recipe + frozen ingredients</b>. It never changes once built.'},
+ {i:'📦',t:'Container',d:'A running instance of an image.',a:'Like <b>the cooked dish</b> made from the recipe. You can make many dishes from one recipe.'},
+ {i:'📝',t:'Dockerfile',d:'A text file with step-by-step instructions to build an image.',a:'The <b>written recipe</b> itself.'},
+ {i:'☁️',t:'Registry / Docker Hub',d:'An online library of images you can pull or push.',a:'Like an <b>app store for images</b>: nginx, postgres, node, python...'},
+ {i:'💾',t:'Volume',d:'Persistent storage that outlives containers.',a:'Like <b>a fridge outside the kitchen</b>. Dishes come and go, the food stays.'},
+ {i:'🕸️',t:'Network',d:'A virtual network letting containers talk to each other.',a:'Like <b>intercom lines</b> between kitchen stations.'},
+ {i:'🧱',t:'Docker Engine',d:'The background service that builds and runs everything.',a:'The <b>kitchen</b> where everything is made. Docker Desktop installs it for you.'},
+ {i:'🎼',t:'Compose',d:'A tool to define and run multi-container apps from one YAML file.',a:'The <b>full menu</b>: start, appetizer and main course served together.'},
+];
+const pg=document.getElementById('partsGrid'),pi=document.getElementById('partInfo');
+parts.forEach((p,n)=>{const c=document.createElement('div');c.className='card';c.style.cursor='pointer';
+ c.innerHTML=`<div class="big">${p.i}</div><b>${p.t}</b>`;
+ c.onclick=()=>{pi.innerHTML=`<b>${p.i} ${p.t}</b><p style="margin:6px 0">${p.d}</p><p class="lead" style="margin:0">🍳 ${p.a}</p>`;
+  [...pg.children].forEach(x=>x.style.borderColor='');c.style.borderColor='var(--blue)'};
+ pg.appendChild(c)});
+
+/* ---------- simulator ---------- */
+let S;
+const out=document.getElementById('out');
+function reset(){S={img:false,ctr:null};out.innerHTML='';say('Welcome! Click a command button.\n');draw()}
+function say(t,c){out.innerHTML+=(c?`<span class="${c}">${t}</span>`:t)+'\n';out.scrollTop=out.scrollHeight}
+function draw(){
+ document.getElementById('imgs').innerHTML=S.img?'<span class="pill">🖼️ nginx:latest</span>':'<span class="empty">none yet</span>';
+ document.getElementById('ctrs').innerHTML=S.ctr?`<span class="pill ${S.ctr}"><span class="dot"></span>web (nginx) · ${S.ctr==='run'?'Running · localhost:8080':'Stopped'}</span>`:'<span class="empty">none yet</span>';
+}
+function sim(a){
+ const cmds={pull:'docker pull nginx',run:'docker run -d --name web -p 8080:80 nginx',ps:'docker ps',stop:'docker stop web',start:'docker start web',logs:'docker logs web',rm:'docker rm web',rmi:'docker rmi nginx'};
+ if(a==='reset')return reset();
+ say('$ '+cmds[a],'cmd');
+ if(a==='pull'){say(S.img?'Image is up to date for nginx:latest':'latest: Pulling from library/nginx\nDigest: sha256:9f3c...\nStatus: Downloaded newer image for nginx:latest');S.img=true}
+ else if(a==='run'){
+  if(S.ctr)say('docker: Error: container name "/web" is already in use.','err');
+  else{if(!S.img){say('Unable to find image locally, pulling nginx...');S.img=true}
+   say('b7e41c9a2d03f6...  (container ID)\n✔ Open http://localhost:8080 in your browser');S.ctr='run'}}
+ else if(a==='ps'){say(S.ctr==='run'?'CONTAINER ID  IMAGE  STATUS      PORTS                 NAMES\nb7e41c9a2d03  nginx  Up 5 sec    0.0.0.0:8080->80/tcp  web':'CONTAINER ID  IMAGE  STATUS  PORTS  NAMES\n(nothing running. Use "docker ps -a" to include stopped)')}
+ else if(a==='stop'){if(S.ctr==='run'){say('web');S.ctr='stop'}else say('Error: No such container or not running: web','err')}
+ else if(a==='start'){if(S.ctr==='stop'){say('web');S.ctr='run'}else if(S.ctr)say('web (already running)');else say('Error: No such container: web','err')}
+ else if(a==='logs'){S.ctr?say('/docker-entrypoint.sh: Configuration complete; ready for start up\n172.17.0.1 "GET / HTTP/1.1" 200 615'):say('Error: No such container: web','err')}
+ else if(a==='rm'){if(S.ctr==='run')say('Error: cannot remove a running container. Stop it first (or use rm -f).','err');else if(S.ctr){say('web');S.ctr=null}else say('Error: No such container: web','err')}
+ else if(a==='rmi'){if(S.ctr)say('Error: image is being used by container web. Remove the container first.','err');else if(S.img){say('Untagged: nginx:latest\nDeleted image');S.img=false}else say('Error: No such image: nginx','err')}
+ draw();
+}
+reset();
+
+/* ---------- dockerfile ---------- */
+const df=[
+ ['FROM node:20','Start from an existing base image that already has Node.js 20. Every Dockerfile begins with FROM.'],
+ ['WORKDIR /app','Sets the working folder inside the image. Later commands run from here.'],
+ ['COPY package*.json ./','Copy only the dependency list first. This keeps the next step cached unless dependencies change.'],
+ ['RUN npm install','Runs a command while building. Here it downloads your dependencies into the image.'],
+ ['COPY . .','Copy the rest of your project code into the image.'],
+ ['EXPOSE 3000','Documents that the app listens on port 3000. You still publish it with -p when running.'],
+ ['CMD ["npm","start"]','The command that runs when the container starts. Only the last CMD counts.'],
+];
+const dfEl=document.getElementById('df'),lay=document.getElementById('layers'),ex=document.getElementById('dfExplain');
+df.forEach((l,n)=>{const d=document.createElement('div');d.className='line';
+ d.innerHTML=`<code>${l[0]}</code><span>${l[1].split('.')[0]}.</span>`;
+ d.onclick=()=>{[...dfEl.children].forEach(x=>x.classList.remove('active'));d.classList.add('active');
+  ex.textContent=l[1];lay.innerHTML='';
+  for(let i=0;i<=n;i++){const e=document.createElement('div');e.textContent=`Layer ${i+1}: ${df[i][0]}`;lay.appendChild(e)}};
+ dfEl.appendChild(d)});
+
+/* ---------- cheat sheet ---------- */
+const cheat=[
+ ['Images','docker pull nginx','Download an image from Docker Hub'],
+ ['Images','docker images','List images on your machine'],
+ ['Images','docker build -t myapp .','Build an image from the Dockerfile in this folder'],
+ ['Images','docker rmi myapp','Delete an image'],
+ ['Images','docker tag myapp user/myapp:1.0','Name an image for pushing'],
+ ['Images','docker push user/myapp:1.0','Upload an image to Docker Hub'],
+ ['Containers','docker run -d --name web -p 8080:80 nginx','Create and start a container in the background'],
+ ['Containers','docker run -it ubuntu bash','Run interactively with a shell'],
+ ['Containers','docker ps','List running containers'],
+ ['Containers','docker ps -a','List all containers including stopped'],
+ ['Containers','docker stop web','Stop a container'],
+ ['Containers','docker start web','Start a stopped container'],
+ ['Containers','docker restart web','Restart a container'],
+ ['Containers','docker rm web','Delete a stopped container'],
+ ['Containers','docker rm -f web','Force delete even if running'],
+ ['Debug','docker logs -f web','Follow container logs live'],
+ ['Debug','docker exec -it web bash','Open a shell inside a running container'],
+ ['Debug','docker inspect web','Show full details as JSON'],
+ ['Debug','docker stats','Live CPU and memory usage'],
+ ['Volumes','docker volume ls','List volumes'],
+ ['Volumes','docker volume create mydata','Create a volume'],
+ ['Volumes','docker volume rm mydata','Delete a volume'],
+ ['Networks','docker network ls','List networks'],
+ ['Networks','docker network create mynet','Create a network'],
+ ['Compose','docker compose up -d','Start all services in the background'],
+ ['Compose','docker compose down','Stop and remove all services'],
+ ['Compose','docker compose logs -f','Follow logs of all services'],
+ ['Compose','docker compose build','Rebuild service images'],
+ ['Cleanup','docker system prune','Remove unused containers, networks and dangling images'],
+ ['Cleanup','docker system df','Show how much disk Docker uses'],
+];
+const cats=['All',...new Set(cheat.map(c=>c[0]))];let cat='All';
+const catsEl=document.getElementById('cats'),body=document.getElementById('cheatBody'),q=document.getElementById('q');
+function renderCheat(){
+ const t=q.value.toLowerCase();
+ body.innerHTML=cheat.filter(c=>(cat==='All'||c[0]===cat)&&(c[1]+c[2]).toLowerCase().includes(t))
+  .map(c=>`<tr><td><code>${c[1]}</code></td><td>${c[2]}</td></tr>`).join('')||'<tr><td colspan="2" class="empty">No match</td></tr>';
+ [...catsEl.children].forEach(b=>b.classList.toggle('on',b.textContent===cat));
+}
+cats.forEach(c=>{const b=document.createElement('button');b.textContent=c;b.onclick=()=>{cat=c;renderCheat()};catsEl.appendChild(b)});
+q.oninput=renderCheat;renderCheat();
+
+/* ---------- quiz ---------- */
+const quiz=[
+ ['What is a container?',['A running instance of an image','A text file with instructions','A website for sharing images'],0],
+ ['Which file describes how to build an image?',['docker-compose.yml','Dockerfile','package.json'],1],
+ ['In -p 8080:80, which port do you open in your browser?',['80','8080','Both'],1],
+ ['You delete a container. What happens to data stored only inside it?',['It is saved forever','It is lost','It moves to the image'],1],
+ ['Which command lists running containers?',['docker images','docker ps','docker run'],1],
+ ['Why are containers lighter than virtual machines?',['They share the host OS kernel','They use no memory','They do not run apps'],0],
+];
+let qi=0,score=0;const qb=document.getElementById('quizBox');
+function showQ(){
+ if(qi>=quiz.length){qb.innerHTML=`<div class="big">🎉</div><b>Score: ${score} / ${quiz.length}</b><p class="lead">${score>=5?'Great job! You understand the basics.':'Good start. Re-read the sections and try again.'}</p><button class="primary" onclick="qi=0;score=0;showQ()">Try again</button>`;return}
+ const [t,o,a]=quiz[qi];
+ qb.innerHTML=`<div class="tag">Question ${qi+1} of ${quiz.length}</div><h3 style="margin:6px 0 10px">${t}</h3>`+
+  o.map((x,i)=>`<button class="opt" data-i="${i}">${x}</button>`).join('')+'<div id="fb" class="lead"></div>';
+ qb.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  qb.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(+x.dataset.i===a)x.classList.add('right')});
+  if(+b.dataset.i===a){score++}else b.classList.add('wrong');
+  document.getElementById('fb').innerHTML=(+b.dataset.i===a?'✅ Correct! ':'❌ Not quite. ')+'<button class="primary" onclick="qi++;showQ()">Next</button>';
+ });
+}
+showQ();
+
+/* ---------- roadmap ---------- */
+const road=['Install Docker Desktop and run docker run hello-world','Run a database (Postgres or Redis) with docker run','Use ports (-p) and open an app in the browser','Use a volume so data survives deleting the container','Write your first Dockerfile and docker build it','Run your own app inside a container','Write a docker-compose.yml with app + database','Push an image to Docker Hub','Learn multi-stage builds to shrink images','Explore deployment (cloud, Kubernetes) later'];
+let done={};try{done=JSON.parse(localStorage.getItem('dockerRoad')||'{}')}catch(e){}
+const rl=document.getElementById('road');
+function paintRoad(){
+ const n=road.filter((_,i)=>done[i]).length;
+ document.getElementById('bar').style.width=(n/road.length*100)+'%';
+ document.getElementById('pct').textContent=`${n} of ${road.length} done`;
+}
+road.forEach((t,i)=>{const li=document.createElement('li');li.style.padding='6px 0';
+ li.innerHTML=`<label style="cursor:pointer"><input type="checkbox" ${done[i]?'checked':''}> Step ${i+1}: ${t}</label>`;
+ li.querySelector('input').onchange=e=>{done[i]=e.target.checked;try{localStorage.setItem('dockerRoad',JSON.stringify(done))}catch(_){}paintRoad()};
+ rl.appendChild(li)});
+paintRoad();
+</script>
+</body>
+</html>

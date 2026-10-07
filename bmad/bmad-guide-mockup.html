@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BMAD Guide</title>
+<style>
+:root{--bg:#0f1221;--panel:#181c33;--panel2:#20254a;--text:#e8eaf6;--muted:#9aa3c7;--accent:#7c9cff;--accent2:#5eead4;--warn:#fbbf24;--border:#2c3260}
+:root[data-theme="light"]{--bg:#f5f6fb;--panel:#fff;--panel2:#eef0fb;--text:#1b1f3a;--muted:#5a628a;--accent:#3b5bdb;--accent2:#0d9488;--warn:#b45309;--border:#d9dcf0}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.6 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:12px 24px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+header h1 span{color:var(--accent)}
+nav{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+nav button,.theme{background:none;border:1px solid transparent;color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font:inherit}
+nav button:hover,.theme:hover{color:var(--text)}
+nav button.on{background:var(--panel2);color:var(--text);border-color:var(--border)}
+main{max-width:1050px;margin:0 auto;padding:28px 20px 80px}
+section{display:none}section.on{display:block}
+h2{font-size:26px;margin:0 0 6px}
+.lead{color:var(--muted);margin:0 0 24px;max-width:70ch}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card h3{margin:0 0 4px;font-size:16px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--panel2);color:var(--accent2);margin-bottom:8px;font-weight:600}
+code,.cmd{font-family:Consolas,monospace;background:var(--panel2);padding:2px 7px;border-radius:6px;font-size:13px;color:var(--accent2)}
+.cmd{display:block;padding:12px 14px;margin:10px 0;border:1px solid var(--border);color:var(--text)}
+.cmd b{color:var(--accent)}
+.flow{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px}
+.step{flex:0 0 190px;background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:10px;padding:12px;cursor:pointer}
+.step:hover,.step.on{background:var(--panel2)}
+.step .n{font-size:11px;color:var(--muted)}
+.step h4{margin:2px 0 4px;font-size:15px}
+.step small{color:var(--muted)}
+.detail{margin-top:14px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.detail h3{margin-top:0}
+.agent{display:flex;gap:14px;align-items:flex-start}
+.ico{font-size:30px;width:52px;height:52px;display:grid;place-items:center;background:var(--panel2);border-radius:12px;flex:none}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+td,th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+input[type=search]{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text);font:inherit;margin-bottom:16px}
+.note{border-left:3px solid var(--warn);background:var(--panel);padding:10px 14px;border-radius:0 8px 8px 0;margin:16px 0;color:var(--muted)}
+.tree{font-family:Consolas,monospace;font-size:13px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;white-space:pre;overflow-x:auto;color:var(--muted)}
+.tree b{color:var(--text)}
+@media(max-width:600px){header{padding:10px 16px}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<header>
+  <h1><span>BMAD</span> Guide</h1>
+  <nav id="nav"></nav>
+  <button class="theme" id="theme">◐ Theme</button>
+</header>
+<main>
+
+<section id="what">
+  <h2>What is BMAD?</h2>
+  <p class="lead">BMad Method is an AI-driven development framework. Instead of one chatbot doing everything, it splits software work into <b>specialist agents</b> (analyst, PM, architect, UX, developer) and <b>workflows</b> (PRD, architecture, stories, build, review), each installed as a Claude Code <em>skill</em>. You walk a project from idea to shipped code, leaving a trail of documents each step builds on.</p>
+  <div class="grid">
+    <div class="card"><span class="tag">AGENTS</span><h3>Personas with a job</h3><p>Mary, John, Winston, Sally and Amelia each own a phase and a menu of actions.</p></div>
+    <div class="card"><span class="tag">WORKFLOWS</span><h3>Guided processes</h3><p>Skills like PRD, Architecture, Epics &amp; Stories walk you through questions and write the document.</p></div>
+    <div class="card"><span class="tag">ARTIFACTS</span><h3>Files, not chat</h3><p>Outputs land in <code>_bmad-output</code> so the next skill can read them. Chat can be thrown away.</p></div>
+    <div class="card"><span class="tag">CONFIG</span><h3>Customizable</h3><p>Override any skill via TOML in <code>_bmad/custom</code>: persona, menu, facts, steps.</p></div>
+  </div>
+  <div class="note">Your workspace already has <code>.claude/skills</code> (29 BMAD skills), <code>_bmad</code> (config, scripts, module) and <code>_bmad-output</code> (generated docs).</div>
+</section>
+
+<section id="skills">
+  <h2>What are skills?</h2>
+  <p class="lead">A skill is a folder containing a <code>SKILL.md</code>: a name, a one-line description, and instructions. Claude Code loads the description automatically and pulls in the full instructions only when your request matches, or when you type <code>/skill-name</code>.</p>
+  <div class="tree"><b>.claude/skills/bmad-prd/</b>
+├── <b>SKILL.md</b>        ← name + description (frontmatter) + instructions
+├── customize.toml   ← default settings you can override
+├── assets/          ← templates the skill fills in
+├── references/      ← extra docs loaded on demand
+├── steps/           ← step files, loaded one at a time
+└── scripts/         ← helpers run through <code>uv</code></div>
+  <h3 style="margin-top:24px">Two kinds of BMAD skills</h3>
+  <div class="grid">
+    <div class="card"><span class="tag">AGENT SKILL</span><h3>bmad-agent-*</h3><p>Adopts a persona, greets you, shows a menu of capabilities. Stays in character until dismissed.</p></div>
+    <div class="card"><span class="tag">WORKFLOW SKILL</span><h3>bmad-prd, bmad-build…</h3><p>Runs one process end to end and writes an output document or code.</p></div>
+  </div>
+  <h3 style="margin-top:24px">Three ways to trigger one</h3>
+  <span class="cmd"><b>/bmad-prd</b>                       type the slash command</span>
+  <span class="cmd"><b>"talk to John"</b>                  say what the description says</span>
+  <span class="cmd"><b>"create a PRD for my app"</b>        just describe the task; Claude matches it</span>
+</section>
+
+<section id="flow">
+  <h2>How to use it: the flow</h2>
+  <p class="lead">Click a step. Early steps are optional; PRD to build is the main path. Run each skill in a fresh chat so the context stays clean.</p>
+  <div class="flow" id="flowRow"></div>
+  <div class="detail" id="flowDetail"></div>
+  <h3 style="margin-top:28px">Quick start</h3>
+  <span class="cmd"><b>/bmad-help</b>                       see where you are and what to do next</span>
+  <span class="cmd"><b>/bmad-agent-pm</b>                   meet John, pick PRD from the menu</span>
+  <span class="cmd"><b>/bmad-agent-ux-designer</b>          then Sally for UX, Winston for architecture</span>
+  <span class="cmd"><b>/bmad-build</b>                       implement a story or feature</span>
+</section>
+
+<section id="agents">
+  <h2>The agents</h2>
+  <p class="lead">Each agent has a menu code. Say the code, a number, or describe what you want.</p>
+  <div id="agentList" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(310px,1fr))"></div>
+</section>
+
+<section id="catalog">
+  <h2>All 29 skills</h2>
+  <input type="search" id="q" placeholder="Filter skills, e.g. review, prd, test…">
+  <table><thead><tr><th>Skill</th><th>Group</th><th>What it does</th></tr></thead><tbody id="rows"></tbody></table>
+</section>
+
+<section id="files">
+  <h2>Where things live</h2>
+  <p class="lead">Skills are the instructions. <code>_bmad</code> is the runtime they depend on. Output goes to <code>_bmad-output</code>.</p>
+  <div class="tree"><b>d:\new repos\</b>
+├── <b>.claude/skills/</b>   29 bmad-* skills (what Claude Code loads)
+├── <b>_bmad/</b>
+│   ├── config.toml  your name, language, output folders
+│   ├── scripts/     resolve_config.py, memlog.py … (run with uv)
+│   ├── bmm/         the BMad Method module
+│   └── custom/      <i>your overrides go here</i>
+└── <b>_bmad-output/</b>    PRDs, specs, architecture, stories</div>
+  <h3 style="margin-top:24px">Customizing</h3>
+  <p class="lead">Never edit a skill's <code>customize.toml</code>; updates overwrite it. Create <code>_bmad/custom/&lt;skill&gt;.toml</code> (team) or <code>.user.toml</code> (personal) to change persona, menu items, or add persistent facts. <code>/bmad-customize</code> does this for you.</p>
+  <div class="note">Requirement: the skills call scripts through <code>uv</code>. Install it if a skill reports it can't run.</div>
+</section>
+
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const tabs=[["what","What is BMAD"],["skills","Skills"],["flow","Workflow"],["agents","Agents"],["catalog","Catalog"],["files","Files"]];
+tabs.forEach(([id,l],i)=>{const b=document.createElement('button');b.textContent=l;b.dataset.id=id;b.onclick=()=>show(id);$('#nav').appendChild(b)});
+function show(id){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));history.replaceState(null,'','#'+id)}
+show(tabs.some(t=>t[0]===location.hash.slice(1))?location.hash.slice(1):'what');
+
+const flow=[
+["Discover","bmad-brainstorming · bmad-forge-idea · bmad-deep-recon","Optional. Generate ideas, pressure-test them with personas, research market or tech before committing."],
+["Brief","bmad-product-brief · bmad-prfaq","Optional. A short product brief, or a Working Backwards press release + FAQ to stress-test the concept."],
+["PRD / Spec","bmad-prd · bmad-spec","Define what to build and why. Interview-driven. A spec is the compact contract downstream skills consume."],
+["UX","bmad-ux","Produces DESIGN.md (how it looks) and EXPERIENCE.md (how it behaves). Led by Sally."],
+["Architecture","bmad-architecture","The invariants that keep separately built parts consistent. Led by Winston."],
+["Epics & Stories","bmad-create-epics-and-stories","Break requirements into epics and stories with acceptance criteria."],
+["Sprint plan","bmad-sprint-planning","Checks planning is complete, then generates sprint-status.yaml."],
+["Build","bmad-build · bmad-build-auto","Amelia implements, reviews and verifies each story. Auto runs an unattended loop."],
+["Review","bmad-code-review · bmad-review · bmad-walkthrough","Parallel reviewers, triaged findings, and a human walkthrough of the change."],
+["Retro","bmad-retrospective · bmad-correct-course","Review a finished epic, or re-plan when a big change appears mid-sprint."]];
+flow.forEach((f,i)=>{const d=document.createElement('div');d.className='step';d.innerHTML=`<div class="n">STEP ${i+1}</div><h4>${f[0]}</h4><small>${f[1].split(' · ')[0]}</small>`;d.onclick=()=>pick(i);$('#flowRow').appendChild(d)});
+function pick(i){document.querySelectorAll('.step').forEach((s,j)=>s.classList.toggle('on',i===j));const f=flow[i];$('#flowDetail').innerHTML=`<h3>${i+1}. ${f[0]}</h3><p>${f[2]}</p><p>Skills: ${f[1].split(' · ').map(s=>`<code>${s}</code>`).join(' ')}</p>`}
+pick(2);
+
+const agents=[
+["📊","Mary","Business Analyst","bmad-agent-analyst",[["BP","Brainstorming"],["MR","Market research"],["DR","Domain research"],["TR","Technical research"],["CR","Competitor teardown"],["UV","User-voice research"],["CB","Product brief"],["WB","PRFAQ challenge"],["PC","Project context"]]],
+["📋","John","Product Manager","bmad-agent-pm",[["PRD","Create / update / validate PRD"],["CE","Epics and stories"],["IR","Implementation readiness"],["CC","Correct course"]]],
+["🎨","Sally","UX Designer","bmad-agent-ux-designer",[["CU","Create UX design"]]],
+["🏗️","Winston","System Architect","bmad-agent-architect",[["CA","Architecture spine"],["IR","Implementation readiness"]]],
+["💻","Amelia","Senior Engineer","bmad-agent-dev",[["BD","Build feature / fix / story"],["QA","Generate API and E2E tests"],["CR","Code review"],["SP","Sprint plan"],["ER","Epic review"]]]];
+$('#agentList').innerHTML=agents.map(a=>`<div class="card"><div class="agent"><div class="ico">${a[0]}</div><div><h3>${a[1]}</h3><p>${a[2]}<br><code>/${a[3]}</code></p></div></div><table>${a[4].map(m=>`<tr><td><code>${m[0]}</code></td><td>${m[1]}</td></tr>`).join('')}</table></div>`).join('');
+
+const cat=[
+["Agents","bmad-agent-analyst","Mary: research, briefs, brainstorming"],["Agents","bmad-agent-pm","John: PRD, epics, readiness"],["Agents","bmad-agent-ux-designer","Sally: UX design"],["Agents","bmad-agent-architect","Winston: architecture"],["Agents","bmad-agent-dev","Amelia: build, test, review"],
+["Discover","bmad-brainstorming","Facilitated brainstorming with creative techniques"],["Discover","bmad-forge-idea","Pressure-test a half-formed idea with personas"],["Discover","bmad-deep-recon","Market, domain, tech, competitor, user-voice research"],["Discover","bmad-advanced-elicitation","Push for deeper critique: socratic, pre-mortem, red team"],
+["Plan","bmad-product-brief","Create, update or validate a product brief"],["Plan","bmad-prfaq","Working Backwards press release and FAQ"],["Plan","bmad-prd","Create, update or validate a PRD"],["Plan","bmad-spec","Condense any input into SPEC.md; can split into stories"],["Plan","bmad-ux","DESIGN.md and EXPERIENCE.md"],["Plan","bmad-architecture","Short architecture document of invariants"],["Plan","bmad-create-epics-and-stories","Requirements into epics and stories"],["Plan","bmad-sprint-planning","Readiness check and sprint-status.yaml"],
+["Build","bmad-build","Implement, review and verify a change"],["Build","bmad-build-auto","One iteration of an unattended build loop"],["Build","bmad-qa-generate-e2e-tests","API and end-to-end tests"],
+["Review","bmad-code-review","Parallel reviewers, triaged findings"],["Review","bmad-review","Adversarial, edge-case and prose review lenses"],["Review","bmad-walkthrough","Walk a human through a change"],["Review","bmad-retrospective","Evidence-based epic retrospective"],["Review","bmad-correct-course","Sprint change proposal"],
+["Utility","bmad-help","Where am I, what next"],["Utility","bmad-party-mode","Roundtable of multiple agents"],["Utility","bmad-project-context","Set up or refresh AGENTS.md"],["Utility","bmad-customize","Override skills and agents"]];
+function draw(f=''){f=f.toLowerCase();$('#rows').innerHTML=cat.filter(r=>r.join(' ').toLowerCase().includes(f)).map(r=>`<tr><td><code>${r[1]}</code></td><td>${r[0]}</td><td>${r[2]}</td></tr>`).join('')}
+draw();$('#q').oninput=e=>draw(e.target.value);
+
+$('#theme').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light'};
+</script>
+</body>
+</html>

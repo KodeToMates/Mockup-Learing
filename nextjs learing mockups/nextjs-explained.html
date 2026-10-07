@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Next.js Explained - Visual Guide</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#131c2f; --panel2:#1a2540; --line:#273352;
+    --text:#e6ecf8; --muted:#93a1c0; --accent:#8b9cff; --teal:#22d3b6;
+    --amber:#fbbf24; --red:#f87171; --green:#4ade80; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  code,pre{font-family:Consolas,"Cascadia Code",monospace}
+  header.hero{padding:64px 24px 48px;text-align:center;background:radial-gradient(900px 400px at 50% -50%,#6366f155,transparent),var(--bg)}
+  .hero h1{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-1px}
+  .hero h1 span{color:var(--accent)}
+  .hero p{max-width:660px;margin:14px auto 0;color:var(--muted);font-size:1.1rem}
+  nav{position:sticky;top:0;z-index:10;background:#0b1220ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;padding:10px 16px;justify-content:center}
+  nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;font-size:.88rem;white-space:nowrap}
+  nav a:hover{background:var(--panel2);color:var(--text)}
+  main{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+  section{padding-top:56px}
+  h2{font-size:1.7rem;margin-bottom:6px}
+  h2 .n{display:inline-block;background:var(--accent);color:#0a0f24;border-radius:8px;padding:0 10px;margin-right:8px;font-size:1.1rem}
+  .lead{color:var(--muted);margin-bottom:22px}
+  .lead.t{margin:6px 0 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .big{font-size:2rem}
+  .callout{border-left:4px solid var(--amber);background:#fbbf2414;padding:14px 16px;border-radius:0 10px 10px 0;margin-top:16px}
+  .callout.ok{border-color:var(--green);background:#4ade8014}
+  pre{background:#070c17;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:.88rem;color:#cfe3ff}
+  .k{color:var(--teal)} .s{color:var(--amber)} .v{color:var(--purple)} .c{color:#6b7a99}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 14px;border-radius:9px}
+  button:hover{border-color:var(--accent)}
+  button.on,button.primary{background:var(--accent);border-color:var(--accent);color:#0a0f24;font-weight:600}
+  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  ul.pts{list-style:none}
+  ul.pts li{padding:4px 0}
+  ul.pts li::before{content:"✔ ";color:var(--green)}
+  ul.pts.x li::before{content:"✖ ";color:var(--red)}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:1px}
+  td code{color:var(--teal)}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;border:1px solid var(--line);background:var(--panel2)}
+  .pill.srv{border-color:var(--teal);color:var(--teal)}
+  .pill.cli{border-color:var(--amber);color:var(--amber)}
+  .empty{color:var(--muted);font-size:.9rem}
+
+  /* file explorer */
+  .explorer{display:grid;grid-template-columns:minmax(260px,1fr) 1.2fr;gap:16px}
+  @media(max-width:760px){.explorer{grid-template-columns:1fr}}
+  .tree{font-family:Consolas,monospace;font-size:.9rem}
+  .tree .row{display:flex;gap:8px;padding:4px 8px;border-radius:7px;cursor:pointer;white-space:nowrap}
+  .tree .row:hover{background:var(--panel2)}
+  .tree .row.active{background:#8b9cff22;outline:1px solid var(--accent)}
+  .tree .kids{margin-left:16px;border-left:1px dashed var(--line);padding-left:6px}
+
+  /* routing */
+  .urlbar{display:flex;align-items:center;gap:8px;background:#070c17;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-family:Consolas,monospace;margin:10px 0;overflow-x:auto}
+  .urlbar b{color:var(--teal)}
+  .match{margin-top:10px;padding:12px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-family:Consolas,monospace;font-size:.88rem}
+  .arrowdown{text-align:center;color:var(--accent);font-size:1.3rem}
+
+  /* rendering */
+  .track{height:34px;background:var(--panel2);border-radius:8px;position:relative;overflow:hidden;border:1px solid var(--line);margin-top:12px}
+  .seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:.74rem;color:#05101f;font-weight:600}
+  .hybrid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .slot{padding:10px 14px;border-radius:10px;border:1px dashed var(--line);font-size:.85rem;cursor:pointer}
+  .slot.srv{border-color:var(--teal);background:#22d3b611}
+  .slot.cli{border-color:var(--amber);background:#fbbf2411}
+
+  /* request flow */
+  .flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+  .flow .step{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .flow .step b{display:block;color:var(--accent)}
+  .flow .step small{color:var(--muted)}
+  .flow .ar{align-self:center;color:var(--muted);font-size:1.4rem}
+
+  /* counter sim */
+  .demo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.demo{grid-template-columns:1fr}}
+  .browser{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#070c17}
+  .browser .bar{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.8rem}
+  .browser .view{padding:14px;min-height:130px}
+
+  .opt{display:block;width:100%;text-align:left;margin:6px 0}
+  .opt.right{border-color:var(--green);background:#4ade8022}
+  .opt.wrong{border-color:var(--red);background:#f8717122}
+  .cmd{color:var(--green)}
+  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="big">▲</div>
+  <h1>Next.js, <span>explained visually</span></h1>
+  <p>A beginner learning guide: what Next.js is, why people use it, how the folders work, routing, rendering, data and the commands you need. Every demo is interactive.</p>
+</header>
+
+<nav>
+  <a href="#what">What</a><a href="#why">Why</a><a href="#setup">Setup</a>
+  <a href="#structure">Folders</a><a href="#routing">Routing</a><a href="#special">Special files</a>
+  <a href="#components">Server vs Client</a><a href="#rendering">Rendering</a><a href="#data">Data</a>
+  <a href="#extras">Built-ins</a><a href="#commands">Commands</a><a href="#quiz">Quiz</a><a href="#path">Roadmap</a>
+</nav>
+
+<main>
+
+<!-- 1 -->
+<section id="what">
+  <h2><span class="n">1</span>What is Next.js?</h2>
+  <p class="lead">Next.js is a <b>framework built on top of React</b>. React only builds the user interface. Next.js adds everything else a real website needs: routing, server rendering, an API layer, and speed optimizations.</p>
+  <div class="grid g2">
+    <div class="card">
+      <b>React alone</b> <span class="tag">you assemble it</span>
+      <ul class="pts x" style="margin-top:8px">
+        <li>Pick and configure a router</li>
+        <li>Set up bundler and build tools</li>
+        <li>Build a separate backend server</li>
+        <li>Work hard for SEO and fast loading</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:var(--accent)">
+      <b>React + Next.js</b> <span class="tag">batteries included</span>
+      <ul class="pts" style="margin-top:8px">
+        <li>Routing comes from your folders</li>
+        <li>Bundling and compiling built in</li>
+        <li>API endpoints inside the same project</li>
+        <li>Server rendering for SEO and speed</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">Analogy: React is the <b>engine</b>. Next.js is the <b>whole car</b>: wheels, steering, dashboard and all.</div>
+</section>
+
+<!-- 2 -->
+<section id="why">
+  <h2><span class="n">2</span>Why use it?</h2>
+  <p class="lead">Key features at a glance.</p>
+  <div class="grid g3">
+    <div class="card"><div class="big">🧭</div><b>File-based routing</b><p class="lead t">Create a folder, get a URL. No router setup.</p></div>
+    <div class="card"><div class="big">🖥️</div><b>Server Components</b><p class="lead t">Render on the server and send less JavaScript to the browser.</p></div>
+    <div class="card"><div class="big">🔍</div><b>Great SEO</b><p class="lead t">Pages arrive as real HTML that search engines can read.</p></div>
+    <div class="card"><div class="big">⚡</div><b>Fast by default</b><p class="lead t">Automatic code splitting, link prefetching and caching.</p></div>
+    <div class="card"><div class="big">🖼️</div><b>Image &amp; font tools</b><p class="lead t"><code>next/image</code> and <code>next/font</code> keep assets small and sharp.</p></div>
+    <div class="card"><div class="big">🔌</div><b>Built-in API</b><p class="lead t">Write backend endpoints with <code>route.js</code> files.</p></div>
+  </div>
+  <div class="callout ok"><b>Good for:</b> blogs, e-commerce, dashboards, SaaS apps, marketing sites, full-stack apps. <b>Maybe overkill for:</b> a tiny single-page widget.</div>
+</section>
+
+<!-- 3 -->
+<section id="setup">
+  <h2><span class="n">3</span>Setup in 4 steps</h2>
+  <p class="lead">You need <b>Node.js 20.9 or newer</b> installed. Check with <code>node -v</code>.</p>
+  <div class="flow">
+    <div class="step"><div class="big">1️⃣</div><b>Create</b><small>npx create-next-app@latest</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">2️⃣</div><b>Enter folder</b><small>cd my-app</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">3️⃣</div><b>Run</b><small>npm run dev</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">4️⃣</div><b>Open</b><small>localhost:3000</small></div>
+  </div>
+<pre style="margin-top:16px"><span class="cmd">npx create-next-app@latest my-app</span>
+<span class="c"># it asks: TypeScript? ESLint? Tailwind? App Router?  (choose App Router: Yes)</span>
+<span class="cmd">cd my-app</span>
+<span class="cmd">npm run dev</span>
+<span class="c"># open http://localhost:3000 and edit app/page.js - the page updates instantly</span></pre>
+</section>
+
+<!-- 4 -->
+<section id="structure">
+  <h2><span class="n">4</span>Folder structure explorer</h2>
+  <p class="lead">The layout of a Next.js App Router project. Click folders to open them and any item to see what it does.</p>
+  <div class="explorer">
+    <div class="card tree" id="tree"></div>
+    <div class="card" id="treeInfo"><span class="empty">Click any file or folder to see what it does.</span></div>
+  </div>
+  <div class="callout"><b>Golden rule:</b> a folder only becomes a public URL when it contains a <code>page.js</code> (or <code>route.js</code>).</div>
+</section>
+
+<!-- 5 -->
+<section id="routing">
+  <h2><span class="n">5</span>Routing: URL to file</h2>
+  <p class="lead">Pick a URL and see which file answers it.</p>
+  <div class="card">
+    <div class="tag">Pick a URL</div>
+    <div class="tabs" id="routeTabs" style="margin-top:8px"></div>
+    <div class="urlbar">🌐 <span>localhost:3000</span><b id="routeUrl"></b></div>
+    <div class="arrowdown">↓ Next.js matches</div>
+    <div class="match"><span id="routeFile" style="color:var(--teal)"></span><div id="routeNote" style="color:var(--muted);margin-top:4px"></div></div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card"><b>Static route</b><pre style="margin-top:8px">app/about/page.js
+<span class="c">→ /about</span></pre></div>
+    <div class="card"><b>Dynamic route</b><pre style="margin-top:8px">app/blog/[slug]/page.js
+<span class="c">→ /blog/anything</span></pre></div>
+    <div class="card"><b>Catch-all route</b><pre style="margin-top:8px">app/docs/[...path]/page.js
+<span class="c">→ /docs/a/b/c</span></pre></div>
+  </div>
+  <div class="tag" style="margin:18px 0 8px">Dynamic page example</div>
+<pre><span class="c">// app/blog/[slug]/page.js</span>
+<span class="k">export default async function</span> Page({ params }) {
+  <span class="k">const</span> { slug } = <span class="k">await</span> params;
+  <span class="k">return</span> &lt;h1&gt;Post: {slug}&lt;/h1&gt;;
+}</pre>
+  <div class="tag" style="margin:18px 0 8px">Linking between pages</div>
+<pre><span class="k">import</span> Link <span class="k">from</span> <span class="s">'next/link'</span>;
+
+&lt;Link href=<span class="s">"/about"</span>&gt;About us&lt;/Link&gt;   <span class="c">// fast client-side navigation, no full page reload</span></pre>
+</section>
+
+<!-- 6 -->
+<section id="special">
+  <h2><span class="n">6</span>Special files</h2>
+  <p class="lead">Files with magic names that Next.js understands.</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>page.js</code></td><td>The UI for a route. Makes the folder a public URL.</td></tr>
+        <tr><td><code>layout.js</code></td><td>Shared wrapper (nav, footer) around pages. Stays mounted while you navigate.</td></tr>
+        <tr><td><code>loading.js</code></td><td>Instant loading UI shown while the page fetches data.</td></tr>
+        <tr><td><code>error.js</code></td><td>Friendly fallback when something throws an error.</td></tr>
+        <tr><td><code>not-found.js</code></td><td>Custom 404 page.</td></tr>
+        <tr><td><code>route.js</code></td><td>API endpoint (export GET, POST, ...).</td></tr>
+        <tr><td><code>middleware.js</code> / <code>proxy.js</code></td><td>Code that runs before a request finishes, e.g. redirect users who are not logged in.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tag" style="margin:18px 0 8px">Root layout example</div>
+<pre><span class="c">// app/layout.js</span>
+<span class="k">export default function</span> RootLayout({ children }) {
+  <span class="k">return</span> (
+    &lt;html lang=<span class="s">"en"</span>&gt;
+      &lt;body&gt;
+        &lt;Navbar /&gt;
+        {children}   <span class="c">{/* the current page appears here */}</span>
+        &lt;Footer /&gt;
+      &lt;/body&gt;
+    &lt;/html&gt;
+  );
+}</pre>
+</section>
+
+<!-- 7 -->
+<section id="components">
+  <h2><span class="n">7</span>Server vs Client Components</h2>
+  <p class="lead">The most important idea in modern Next.js. Components are <b>Server Components by default</b>. Add <code>'use client'</code> only when you need interactivity.</p>
+  <div class="grid g2">
+    <div class="card" style="border-color:var(--teal)">
+      <b>🖥️ Server Component</b> <span class="pill srv">default</span>
+      <ul class="pts" style="margin-top:8px">
+        <li>Runs only on the server</li>
+        <li>Can fetch data and read secrets directly</li>
+        <li>Sends no JavaScript to the browser</li>
+      </ul>
+      <ul class="pts x"><li>No useState, useEffect or onClick</li></ul>
+    </div>
+    <div class="card" style="border-color:var(--amber)">
+      <b>🖱️ Client Component</b> <span class="pill cli">'use client'</span>
+      <ul class="pts" style="margin-top:8px">
+        <li>Handles clicks, forms and state</li>
+        <li>Can use browser APIs (window, localStorage)</li>
+        <li>Can use React hooks</li>
+      </ul>
+      <ul class="pts x"><li>Adds JavaScript to the page bundle</li></ul>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+<pre><span class="c">// Server Component (default)</span>
+<span class="k">export default async function</span> Page() {
+  <span class="k">const</span> res = <span class="k">await</span> fetch(<span class="s">'https://api.example.com/posts'</span>);
+  <span class="k">const</span> posts = <span class="k">await</span> res.json();
+  <span class="k">return</span> &lt;ul&gt;{posts.map(p =&gt;
+    &lt;li key={p.id}&gt;{p.title}&lt;/li&gt;)}&lt;/ul&gt;;
+}</pre>
+<pre><span class="s">'use client'</span>;
+<span class="k">import</span> { useState } <span class="k">from</span> <span class="s">'react'</span>;
+
+<span class="k">export default function</span> Counter() {
+  <span class="k">const</span> [n, setN] = useState(0);
+  <span class="k">return</span> &lt;button onClick={() =&gt; setN(n+1)}&gt;
+    Clicked {n}
+  &lt;/button&gt;;
+}</pre>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <b>Where is each part of this blog page rendered?</b> <span class="lead t" style="display:inline">Click a block.</span>
+    <div class="hybrid" id="hybrid"></div>
+    <p class="lead t" id="hybridInfo">Most of the page stays on the server. Only the interactive blocks ship JavaScript.</p>
+  </div>
+  <div class="callout ok"><b>Tip:</b> keep Client Components small and near the "leaves" of your tree. Fetch data in Server Components and pass it down as props.</div>
+</section>
+
+<!-- 8 -->
+<section id="rendering">
+  <h2><span class="n">8</span>Rendering modes</h2>
+  <p class="lead">How and when a page's HTML is created. Pick a mode.</p>
+  <div class="card">
+    <div class="tabs" id="rmTabs"></div>
+    <p id="rmWhen"></p>
+    <p class="lead t" id="rmBest"></p>
+    <div class="track" id="rmTrack"></div>
+  </div>
+  <div class="tag" style="margin:18px 0 8px">How you choose</div>
+<pre><span class="c">// Static page, rebuilt in the background every 60 seconds (ISR)</span>
+<span class="k">export const</span> revalidate = <span class="v">60</span>;
+
+<span class="c">// Force fresh server rendering on every request</span>
+<span class="k">export const</span> dynamic = <span class="s">'force-dynamic'</span>;</pre>
+  <div class="callout">Next.js picks <b>static</b> automatically when a page has no per-request data. You only opt in to dynamic when you need it.</div>
+</section>
+
+<!-- 9 -->
+<section id="data">
+  <h2><span class="n">9</span>Data fetching &amp; API routes</h2>
+  <p class="lead">Fetch inside async Server Components, or build your own endpoints with Route Handlers.</p>
+  <div class="grid g2">
+    <div>
+      <div class="tag" style="margin-bottom:8px">Fetch in a page</div>
+<pre><span class="k">export default async function</span> Users() {
+  <span class="k">const</span> res = <span class="k">await</span> fetch(<span class="s">'https://api.example.com/users'</span>);
+  <span class="k">const</span> users = <span class="k">await</span> res.json();
+  <span class="k">return</span> &lt;ul&gt;{users.map(u =&gt;
+    &lt;li key={u.id}&gt;{u.name}&lt;/li&gt;)}&lt;/ul&gt;;
+}</pre>
+    </div>
+    <div>
+      <div class="tag" style="margin-bottom:8px">Create an API endpoint</div>
+<pre><span class="c">// app/api/hello/route.js</span>
+<span class="k">export async function</span> GET() {
+  <span class="k">return</span> Response.json({ message: <span class="s">'Hello!'</span> });
+}
+
+<span class="k">export async function</span> POST(request) {
+  <span class="k">const</span> body = <span class="k">await</span> request.json();
+  <span class="k">return</span> Response.json({ received: body });
+}</pre>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <b>Try it: simulated API call</b>
+    <p class="lead t">Click to "call" <code>GET /api/hello</code> and see the JSON response.</p>
+    <div style="margin:10px 0"><button class="primary" id="apiBtn">GET /api/hello</button></div>
+    <pre id="apiOut" style="min-height:80px"><span class="c">// response appears here</span></pre>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="extras">
+  <h2><span class="n">10</span>Handy built-in tools</h2>
+  <div class="grid g3">
+    <div class="card"><b>🖼️ next/image</b><pre style="margin-top:8px">&lt;Image src="/hero.png"
+  width={800} height={400}
+  alt="Hero" /&gt;</pre><p class="lead t">Auto-resizes, lazy-loads, modern formats.</p></div>
+    <div class="card"><b>🔤 next/font</b><pre style="margin-top:8px">import { Inter } from
+  'next/font/google';
+const inter = Inter({});</pre><p class="lead t">Self-hosted fonts with no layout shift.</p></div>
+    <div class="card"><b>🏷️ Metadata</b><pre style="margin-top:8px">export const metadata = {
+  title: 'My Page',
+  description: '...'
+};</pre><p class="lead t">Titles and SEO tags per page.</p></div>
+    <div class="card"><b>↪️ Redirects</b><pre style="margin-top:8px">import { redirect }
+  from 'next/navigation';
+redirect('/login');</pre><p class="lead t">Send users to another route.</p></div>
+    <div class="card"><b>🔐 Env variables</b><pre style="margin-top:8px"># .env.local
+DB_URL=secret
+NEXT_PUBLIC_SITE=my.com</pre><p class="lead t">Only <code>NEXT_PUBLIC_</code> ones reach the browser.</p></div>
+    <div class="card"><b>⏳ loading.js</b><pre style="margin-top:8px">export default function
+Loading() {
+  return &lt;p&gt;Loading...&lt;/p&gt;;
+}</pre><p class="lead t">Instant skeleton while data loads.</p></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section id="commands">
+  <h2><span class="n">11</span>Commands &amp; deploy</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>npx create-next-app@latest my-app</code></td><td>Create a new project</td></tr>
+        <tr><td><code>npm run dev</code></td><td>Dev server with hot reload at localhost:3000</td></tr>
+        <tr><td><code>npm run build</code></td><td>Optimized production build; shows which pages are static or dynamic</td></tr>
+        <tr><td><code>npm start</code></td><td>Run the production build</td></tr>
+        <tr><td><code>npm install package-name</code></td><td>Add a library</td></tr>
+        <tr><td><code>npm run lint</code></td><td>Check code for problems (if ESLint is set up)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card"><div class="big">▲</div><b>Vercel</b><p class="lead t">Easiest: connect a Git repo and it deploys on every push.</p></div>
+    <div class="card"><div class="big">🐳</div><b>Docker</b><p class="lead t">Package the app in a container and run it anywhere. (See the Docker guide in this folder.)</p></div>
+    <div class="card"><div class="big">🖥️</div><b>Any Node server</b><p class="lead t">Run <code>npm run build</code> then <code>npm start</code> on your VPS.</p></div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section id="quiz">
+  <h2><span class="n">12</span>Quick quiz</h2>
+  <p class="lead">Check what you learned.</p>
+  <div class="card" id="quizBox"></div>
+</section>
+
+<!-- 13 -->
+<section id="path">
+  <h2><span class="n">13</span>Your learning roadmap</h2>
+  <p class="lead">Tick items as you go. Progress is saved in your browser.</p>
+  <div class="card"><ul id="road" style="list-style:none"></ul>
+    <div style="margin-top:12px;background:var(--panel2);border-radius:999px;height:12px;overflow:hidden"><div id="bar" style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--teal));transition:.3s"></div></div>
+    <small class="lead" id="pct"></small>
+  </div>
+  <div class="callout ok" style="margin-top:16px"><b>Common beginner mistakes:</b> using <code>useState</code> without <code>'use client'</code>; putting <code>page.js</code> in the wrong folder; using <code>&lt;a&gt;</code> instead of <code>&lt;Link&gt;</code>; forgetting that only <code>NEXT_PUBLIC_</code> env vars reach the browser.</div>
+</section>
+
+</main>
+<footer>Next.js learning mockup · open this file in any browser · no internet needed</footer>
+
+<script>
+/* ---------- folder tree ---------- */
+const tree=[
+ {n:'app',d:1,i:'The App Router. Every folder here can become a URL.',k:[
+  {n:'layout.js',i:'Root layout. Wraps every page and must contain <html> and <body>. Put the navbar and footer here.'},
+  {n:'page.js',i:'The home page, served at "/".'},
+  {n:'globals.css',i:'Global styles, imported once in layout.js.'},
+  {n:'loading.js',i:'Optional. Shows instantly while the page loads data.'},
+  {n:'about',d:1,i:'A folder named "about" creates the URL /about.',k:[{n:'page.js',i:'The page for /about. A route is only public if it has page.js.'}]},
+  {n:'blog',d:1,i:'Creates /blog.',k:[
+   {n:'page.js',i:'The blog list at /blog.'},
+   {n:'[slug]',d:1,i:'Square brackets = dynamic segment. /blog/hello, /blog/next-tips ... all use this one folder.',k:[{n:'page.js',i:'Reads params.slug and shows the matching post.'}]}]},
+  {n:'api',d:1,i:'Convention for backend endpoints.',k:[
+   {n:'hello',d:1,i:'Creates /api/hello.',k:[{n:'route.js',i:'Route Handler. Export GET, POST, etc. to build an API with no extra server.'}]}]},
+  {n:'components',d:1,i:'Not a route. Folders without page.js stay private, so this is a safe place for shared UI like Navbar and Button.'},
+ ]},
+ {n:'public',d:1,i:'Static files served from the site root. public/logo.png is available at /logo.png.'},
+ {n:'next.config.mjs',i:'Optional Next.js settings: redirects, image domains, env and more.'},
+ {n:'package.json',i:'Dependencies and the dev, build and start scripts.'},
+ {n:'.env.local',i:'Secret settings like API keys. Never commit this file.'},
+ {n:'node_modules',d:1,i:'Installed packages. Never edit; never commit.'},
+ {n:'.next',d:1,i:'Build output created by next dev / next build. Safe to delete; it regenerates.'},
+];
+const treeEl=document.getElementById('tree'),infoEl=document.getElementById('treeInfo');
+let activeRow=null;
+function icon(x,open){return x.d?(open?'📂':'📁'):x.n.endsWith('.css')?'🎨':x.n.endsWith('.json')?'📦':x.n.startsWith('.env')?'🔐':'📄'}
+function build(list,parent,depth){
+ list.forEach(x=>{
+  const wrap=document.createElement('div'),row=document.createElement('div');
+  let open=depth<1;row.className='row';row.innerHTML=`<span>${icon(x,open)}</span><span>${x.n}</span>`;
+  wrap.appendChild(row);
+  let kids=null;
+  if(x.k){kids=document.createElement('div');kids.className='kids';kids.style.display=open?'':'none';build(x.k,kids,depth+1);wrap.appendChild(kids)}
+  row.onclick=()=>{
+   if(activeRow)activeRow.classList.remove('active');row.classList.add('active');activeRow=row;
+   if(kids){open=!open;kids.style.display=open?'':'none';row.firstChild.textContent=icon(x,open)}
+   infoEl.innerHTML=`<div class="tag">${x.d?'Folder':'File'}</div><h3 style="margin:4px 0 8px;font-family:Consolas,monospace">${x.n.replace(/</g,'&lt;')}</h3><p class="lead">${x.i.replace(/</g,'&lt;')}</p>`;
+  };
+  parent.appendChild(wrap);
+ });
+}
+const root=document.createElement('div');root.className='row';root.style.cssText='cursor:default;color:var(--muted)';root.textContent='🗂️ my-next-app/';
+treeEl.appendChild(root);const rk=document.createElement('div');rk.className='kids';treeEl.appendChild(rk);build(tree,rk,0);
+
+/* ---------- routing ---------- */
+const routes=[
+ ['/','app/page.js','Home page'],
+ ['/about','app/about/page.js','Static route from the folder name'],
+ ['/blog','app/blog/page.js','Nested folder'],
+ ['/blog/hello','app/blog/[slug]/page.js','Dynamic route: slug = "hello"'],
+ ['/blog/next-tips','app/blog/[slug]/page.js','Same file, slug = "next-tips"'],
+ ['/api/hello','app/api/hello/route.js','Route Handler returning JSON'],
+];
+const rt=document.getElementById('routeTabs');
+function showRoute(i){
+ [...rt.children].forEach((b,n)=>b.classList.toggle('on',n===i));
+ document.getElementById('routeUrl').textContent=routes[i][0];
+ document.getElementById('routeFile').textContent='📄 '+routes[i][1];
+ document.getElementById('routeNote').textContent=routes[i][2];
+}
+routes.forEach((r,i)=>{const b=document.createElement('button');b.textContent=r[0];b.onclick=()=>showRoute(i);rt.appendChild(b)});
+showRoute(3);
+
+/* ---------- hybrid page ---------- */
+const slots=[
+ ['🖥️ Header','srv','Server: static markup, no JavaScript needed.'],
+ ['🖥️ Article text','srv','Server: fetched from a database on the server and sent as HTML.'],
+ ['🖱️ Like button','cli','Client: needs onClick and useState, so it needs "use client".'],
+ ['🖥️ Comments list','srv','Server: reads comments directly from the database.'],
+ ['🖱️ Comment form','cli','Client: handles typing and submit events.'],
+ ['🖥️ Footer','srv','Server: static markup.'],
+];
+const hy=document.getElementById('hybrid');
+slots.forEach(s=>{const d=document.createElement('div');d.className='slot '+s[1];
+ d.innerHTML=`${s[0]} <span class="pill ${s[1]}">${s[1]==='srv'?'server':'client'}</span>`;
+ d.onclick=()=>document.getElementById('hybridInfo').textContent=s[2];hy.appendChild(d)});
+
+/* ---------- rendering modes ---------- */
+const modes={
+ ssg:{t:'Static (SSG)',w:'Built once at build time, then served as a ready file from a CDN.',b:'Best for: blogs, docs, marketing pages · Speed: fastest',s:[['Build time',0,55,'var(--accent)'],['Request: instant',62,38,'var(--green)']]},
+ isr:{t:'Static + Revalidate (ISR)',w:'Served static, but rebuilt in the background every N seconds.',b:'Best for: product pages, news lists · Speed: very fast',s:[['Cached',0,70,'var(--green)'],['Background refresh',72,28,'var(--amber)']]},
+ ssr:{t:'Dynamic (SSR)',w:'Rendered on the server for every request, so data is always fresh.',b:'Best for: dashboards, personalised pages · Speed: fresh, a bit slower',s:[['Server renders',0,60,'var(--amber)'],['Send HTML',60,40,'var(--green)']]},
+ csr:{t:'Client-side (CSR)',w:'The browser downloads JS, then fetches data and renders by itself.',b:'Best for: interactive widgets behind a login · Speed: slower first paint',s:[['Load JS',0,45,'var(--red)'],['Fetch + render',45,55,'var(--amber)']]},
+};
+const rm=document.getElementById('rmTabs');
+function showMode(k){
+ [...rm.children].forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+ const m=modes[k];
+ document.getElementById('rmWhen').innerHTML=`<b>${m.t}:</b> ${m.w}`;
+ document.getElementById('rmBest').textContent=m.b;
+ document.getElementById('rmTrack').innerHTML=m.s.map(x=>`<div class="seg" style="left:${x[1]}%;width:${x[2]}%;background:${x[3]}">${x[0]}</div>`).join('');
+}
+Object.entries(modes).forEach(([k,m])=>{const b=document.createElement('button');b.textContent=m.t;b.dataset.k=k;b.onclick=()=>showMode(k);rm.appendChild(b)});
+showMode('ssg');
+
+/* ---------- API sim ---------- */
+document.getElementById('apiBtn').onclick=()=>{
+ const o=document.getElementById('apiOut');o.textContent='Loading...';
+ setTimeout(()=>{o.textContent='HTTP 200 OK\n'+JSON.stringify({message:'Hello!',file:'app/api/hello/route.js',time:new Date().toISOString()},null,2)},500);
+};
+
+/* ---------- quiz ---------- */
+const quiz=[
+ ['Which file creates the page at /about in the App Router?',['app/about.js','app/about/page.js','pages/about.html'],1],
+ ['What do square brackets in a folder name, like [slug], mean?',['A dynamic route segment','A hidden folder','A test folder'],0],
+ ['Components in the app/ folder are what by default?',['Client Components','Server Components','Web Workers'],1],
+ ['What must you add to a file to use useState?',['"use client" at the top','export const dynamic','The async keyword'],0],
+ ['Which component gives fast in-app navigation?',['<a>','<Link> from next/link','<button>'],1],
+ ['Which file builds an API endpoint?',['route.js','api.html','layout.js'],0],
+ ['Which command creates the optimized production build?',['npm run dev','npm run build','npm install'],1],
+];
+let qi=0,score=0;const qb=document.getElementById('quizBox');
+function showQ(){
+ if(qi>=quiz.length){qb.innerHTML=`<div class="big">🎉</div><b>Score: ${score} / ${quiz.length}</b><p class="lead">${score>=6?'Great job! You know the Next.js basics.':'Good start. Re-read the sections and try again.'}</p><button class="primary" id="again">Try again</button>`;
+  document.getElementById('again').onclick=()=>{qi=0;score=0;showQ()};return}
+ const [t,o,a]=quiz[qi];
+ qb.innerHTML=`<div class="tag">Question ${qi+1} of ${quiz.length}</div><h3 style="margin:6px 0 10px">${t.replace(/</g,'&lt;')}</h3>`+
+  o.map((x,i)=>`<button class="opt" data-i="${i}">${x.replace(/</g,'&lt;')}</button>`).join('')+'<div id="fb" class="lead t"></div>';
+ qb.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  const ok=+b.dataset.i===a;
+  qb.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(+x.dataset.i===a)x.classList.add('right')});
+  if(ok)score++;else b.classList.add('wrong');
+  document.getElementById('fb').innerHTML=(ok?'✅ Correct! ':'❌ Not quite. ')+'<button class="primary" id="nx">Next</button>';
+  document.getElementById('nx').onclick=()=>{qi++;showQ()};
+ });
+}
+showQ();
+
+/* ---------- roadmap ---------- */
+const road=['Learn basic React (components, props, state)','Create a project with create-next-app','Add pages by creating folders with page.js','Build a shared layout with a navbar','Make a dynamic route like blog/[slug]','Fetch data inside an async Server Component','Add a Client Component with useState','Create an API route with route.js','Add metadata, next/image and next/font','Run npm run build and deploy to Vercel or Docker'];
+let done={};try{done=JSON.parse(localStorage.getItem('nextRoad')||'{}')}catch(e){}
+const rl=document.getElementById('road');
+function paintRoad(){
+ const n=road.filter((_,i)=>done[i]).length;
+ document.getElementById('bar').style.width=(n/road.length*100)+'%';
+ document.getElementById('pct').textContent=`${n} of ${road.length} done`;
+}
+road.forEach((t,i)=>{const li=document.createElement('li');li.style.padding='6px 0';
+ li.innerHTML=`<label style="cursor:pointer"><input type="checkbox" ${done[i]?'checked':''}> Step ${i+1}: ${t}</label>`;
+ li.querySelector('input').onchange=e=>{done[i]=e.target.checked;try{localStorage.setItem('nextRoad',JSON.stringify(done))}catch(_){}paintRoad()};
+ rl.appendChild(li)});
+paintRoad();
+</script>
+</body>
+</html>
