@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP, HTTPS &amp; Status Codes - Visual Guide</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#131c2f; --panel2:#1a2540; --line:#273352;
+    --text:#e6ecf8; --muted:#93a1c0; --blue:#38bdf8; --teal:#22d3b6;
+    --amber:#fbbf24; --red:#f87171; --green:#4ade80; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  code,pre{font-family:Consolas,"Cascadia Code",monospace}
+  header.hero{padding:64px 24px 48px;text-align:center;background:radial-gradient(900px 400px at 50% -50%,#0ea5e955,transparent),var(--bg)}
+  .hero h1{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-1px}
+  .hero h1 span{color:var(--blue)}
+  .hero p{max-width:660px;margin:14px auto 0;color:var(--muted);font-size:1.1rem}
+  nav{position:sticky;top:0;z-index:10;background:#0b1220ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;padding:10px 16px;justify-content:center}
+  nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;font-size:.88rem;white-space:nowrap}
+  nav a:hover{background:var(--panel2);color:var(--text)}
+  main{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+  section{padding-top:56px}
+  h2{font-size:1.7rem;margin-bottom:6px}
+  h2 .n{display:inline-block;background:var(--blue);color:#04121f;border-radius:8px;padding:0 10px;margin-right:8px;font-size:1.1rem}
+  .lead{color:var(--muted);margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .big{font-size:2rem}
+  .callout{border-left:4px solid var(--amber);background:#fbbf2414;padding:14px 16px;border-radius:0 10px 10px 0;margin-top:16px}
+  .callout.ok{border-color:var(--green);background:#4ade8014}
+  .callout.bad{border-color:var(--red);background:#f8717114}
+  pre{background:#070c17;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:.88rem;color:#cfe3ff}
+  .k{color:var(--teal)} .s{color:var(--amber)} .v{color:var(--purple)} .c{color:#6b7a99}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 14px;border-radius:9px}
+  button:hover{border-color:var(--blue)}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#04121f;font-weight:600}
+  button.on{background:var(--blue);color:#04121f;border-color:var(--blue);font-weight:600}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .empty{color:var(--muted);font-size:.85rem;padding:4px}
+  .hidden{display:none}
+  code.i{background:#070c17;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--teal);font-size:.88em}
+
+  /* actors / flow */
+  .actors{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+  .node{padding:14px 18px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);text-align:center;min-width:130px}
+  .lane{flex:1;min-width:160px;display:flex;flex-direction:column;gap:6px;font-size:.82rem;color:var(--muted)}
+  .lane .req{color:var(--blue)} .lane .res{color:var(--green)}
+
+  /* url anatomy */
+  .url{display:flex;flex-wrap:wrap;font-family:Consolas,monospace;font-size:1.05rem;margin:10px 0}
+  .url span{padding:6px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+  .url span:hover,.url span.on{border-color:var(--blue);background:var(--panel2)}
+
+  /* handshake */
+  .hs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.hs{grid-template-columns:1fr}}
+  .msg{padding:8px 12px;border-radius:9px;margin:6px 0;font-size:.88rem;border:1px solid var(--line);background:var(--panel2);animation:pop .3s}
+  .msg.bad{border-color:var(--red);background:#f8717122}
+  .msg.good{border-color:var(--green);background:#4ade8022}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+
+  /* status codes */
+  .cls{padding:5px 14px}
+  .codes{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .code{min-width:64px;text-align:center;font-family:Consolas,monospace;font-weight:700}
+  .c1{color:var(--blue)} .c2{color:var(--green)} .c3{color:var(--amber)} .c4{color:var(--red)} .c5{color:var(--purple)}
+
+  /* simulator */
+  .sim{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.sim{grid-template-columns:1fr}}
+  .term{background:#05080f;border:1px solid var(--line);border-radius:12px;min-height:240px;display:flex;flex-direction:column}
+  .term .bar{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.8rem}
+  .term .out{padding:12px;font-family:Consolas,monospace;font-size:.85rem;white-space:pre-wrap;flex:1;max-height:340px;overflow:auto}
+
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:1px}
+  td code{color:var(--teal);white-space:nowrap}
+  .search{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;margin-bottom:12px}
+
+  .opt{display:block;width:100%;text-align:left;margin:6px 0}
+  .opt.right{border-color:var(--green);background:#4ade8022}
+  .opt.wrong{border-color:var(--red);background:#f8717122}
+  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="big">🌐</div>
+  <h1>HTTP, HTTPS &amp; <span>Status Codes</span></h1>
+  <p>How browsers and servers talk to each other: requests, responses, methods, encryption and what 200, 404 or 500 really mean. Scroll down or use the menu.</p>
+</header>
+
+<nav>
+  <a href="#what">What is HTTP</a><a href="#anatomy">Anatomy</a><a href="#methods">Methods</a>
+  <a href="#https">HTTP vs HTTPS</a><a href="#status">Status codes</a><a href="#sim">Try it</a>
+  <a href="#headers">Headers</a><a href="#cheat">Cheat sheet</a><a href="#quiz">Quiz</a><a href="#path">Roadmap</a>
+</nav>
+
+<main>
+
+<section id="what">
+  <h2><span class="n">1</span>What is HTTP?</h2>
+  <p class="lead"><b>HTTP</b> (HyperText Transfer Protocol) is the set of rules a client (browser, app) and a server follow to exchange web pages, images and data. It works in simple pairs: <b>one request, one response</b>.</p>
+  <div class="card">
+    <div class="tag">Think of ordering at a restaurant</div>
+    <div class="actors" style="margin-top:12px">
+      <div class="node"><div class="big">💻</div><b>Client</b><br><small>browser / app<br>(the customer)</small></div>
+      <div class="lane"><span class="req">➜ Request: "GET /menu"</span><span class="res">⬅ Response: "200 OK + menu"</span></div>
+      <div class="node"><div class="big">🖥️</div><b>Server</b><br><small>website / API<br>(the kitchen)</small></div>
+    </div>
+    <div class="callout">HTTP is <b>stateless</b>: the server does not remember you between requests. That is why cookies and tokens exist (section 7).</div>
+  </div>
+</section>
+
+<section id="anatomy">
+  <h2><span class="n">2</span>Anatomy of a request &amp; response</h2>
+  <p class="lead">Click a part of the URL, then read the raw request and response below.</p>
+  <div class="card">
+    <div class="url" id="url">
+      <span data-i="0">https</span><span data-i="1">://</span><span data-i="2">api.shop.com</span><span data-i="3">:443</span><span data-i="4">/products/42</span><span data-i="5">?color=red</span><span data-i="6">#reviews</span>
+    </div>
+    <p id="urlInfo" class="lead" style="margin:6px 0 0">Click any piece of the URL.</p>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div>
+      <div class="tag">Request (client → server)</div>
+<pre><span class="k">GET</span> <span class="s">/products/42?color=red</span> HTTP/1.1
+<span class="v">Host:</span> api.shop.com
+<span class="v">Accept:</span> application/json
+<span class="v">Authorization:</span> Bearer eyJhbGci...
+<span class="c">(blank line)</span>
+<span class="c">(body is empty for GET)</span></pre>
+      <small class="lead">Start line · headers · blank line · optional body</small>
+    </div>
+    <div>
+      <div class="tag">Response (server → client)</div>
+<pre>HTTP/1.1 <span class="k">200 OK</span>
+<span class="v">Content-Type:</span> application/json
+<span class="v">Cache-Control:</span> max-age=60
+<span class="c">(blank line)</span>
+{ <span class="s">"id"</span>: 42, <span class="s">"name"</span>: <span class="s">"Red Shoes"</span> }</pre>
+      <small class="lead">Status line · headers · blank line · body</small>
+    </div>
+  </div>
+</section>
+
+<section id="methods">
+  <h2><span class="n">3</span>HTTP methods</h2>
+  <p class="lead">The method tells the server what you want to <i>do</i>. Click one.</p>
+  <div class="btnrow" id="mBtns"></div>
+  <div class="card" id="mInfo"></div>
+  <div class="callout ok"><b>Safe</b> = does not change data (GET). <b>Idempotent</b> = repeating it gives the same result (GET, PUT, DELETE). POST is neither, so double-clicking "Pay" can charge twice!</div>
+</section>
+
+<section id="https">
+  <h2><span class="n">4</span>HTTP vs HTTPS</h2>
+  <p class="lead"><b>HTTPS = HTTP + TLS encryption.</b> Same messages, but wrapped in a locked envelope so nobody in the middle can read or change them.</p>
+  <div class="grid g2">
+    <div class="card"><b>🔓 HTTP</b> <span class="tag">port 80 · plain text</span>
+      <p class="lead" style="margin:8px 0 0">Anyone on the same Wi-Fi, ISP or router can read your passwords, cookies and forms, and even inject ads or malware.</p></div>
+    <div class="card"><b>🔒 HTTPS</b> <span class="tag">port 443 · encrypted</span>
+      <p class="lead" style="margin:8px 0 0">Data is encrypted, the server proves its identity with a certificate, and tampering is detected. Browsers show a padlock.</p></div>
+  </div>
+  <div class="hs" style="margin-top:16px">
+    <div class="card">
+      <div class="tag">What a spy on the network sees</div>
+      <div class="btnrow"><button id="spyHttp" class="on">HTTP</button><button id="spyHttps">HTTPS</button></div>
+      <pre id="spy"></pre>
+    </div>
+    <div class="card">
+      <div class="tag">TLS handshake (simplified)</div>
+      <div class="btnrow"><button class="primary" id="hsNext">Next step ▶</button><button id="hsReset">Reset</button></div>
+      <div id="hsOut"></div>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card"><div class="big">🔐</div><b>Encryption</b><p class="lead" style="margin:6px 0 0">Eavesdroppers see only scrambled data.</p></div>
+    <div class="card"><div class="big">🪪</div><b>Authentication</b><p class="lead" style="margin:6px 0 0">A certificate from a trusted authority proves the site is really who it claims.</p></div>
+    <div class="card"><div class="big">🧱</div><b>Integrity</b><p class="lead" style="margin:6px 0 0">Any change to data in transit is detected.</p></div>
+  </div>
+  <div class="callout">Today HTTPS is expected everywhere: Google ranks it higher, browsers warn "Not secure" on HTTP, and modern features (service workers, geolocation, HTTP/2) require it. Free certificates come from Let's Encrypt.</div>
+</section>
+
+<section id="status">
+  <h2><span class="n">5</span>Status codes</h2>
+  <p class="lead">A 3-digit number in every response telling you how it went. The <b>first digit</b> is the family. Pick a family, then click a code.</p>
+  <div class="btnrow" id="famBtns"></div>
+  <div class="codes" id="codeBtns"></div>
+  <div class="card" id="codeInfo"></div>
+  <div class="callout bad"><b>Memory trick:</b> 2xx = ✅ success · 3xx = ➡️ go elsewhere · 4xx = 🙋 <i>your</i> mistake (client) · 5xx = 💥 <i>server's</i> mistake.</div>
+</section>
+
+<section id="sim">
+  <h2><span class="n">6</span>Try it: request simulator</h2>
+  <p class="lead">Fake server for a small shop API. Click a request and see the raw response. No real network is used.</p>
+  <div class="sim">
+    <div class="card">
+      <div class="tag">Send a request</div>
+      <div class="btnrow" id="simBtns"></div>
+      <small class="lead">Notice how different situations give different status codes.</small>
+    </div>
+    <div class="term"><div class="bar">Response</div><div class="out" id="simOut">Click a request on the left.</div></div>
+  </div>
+</section>
+
+<section id="headers">
+  <h2><span class="n">7</span>Headers, cookies &amp; caching</h2>
+  <p class="lead">Headers are labelled notes attached to each message.</p>
+  <div class="grid g3">
+    <div class="card"><b>Content-Type</b><p class="lead" style="margin:6px 0 0">What the body is: <code class="i">application/json</code>, <code class="i">text/html</code>, <code class="i">image/png</code>.</p></div>
+    <div class="card"><b>Authorization</b><p class="lead" style="margin:6px 0 0">Proves who you are: <code class="i">Bearer &lt;token&gt;</code>. Missing or wrong gives 401.</p></div>
+    <div class="card"><b>Cookie / Set-Cookie</b><p class="lead" style="margin:6px 0 0">Server hands you a small value, browser sends it back each time so the server "remembers" you. Use <code class="i">Secure; HttpOnly</code>.</p></div>
+    <div class="card"><b>Cache-Control</b><p class="lead" style="margin:6px 0 0"><code class="i">max-age=3600</code> lets browsers reuse the response for an hour without asking again.</p></div>
+    <div class="card"><b>Location</b><p class="lead" style="margin:6px 0 0">Used with 301/302 redirects: tells the browser the new URL.</p></div>
+    <div class="card"><b>User-Agent / Accept</b><p class="lead" style="margin:6px 0 0">Who is asking, and which formats they can handle.</p></div>
+  </div>
+</section>
+
+<section id="cheat">
+  <h2><span class="n">8</span>Cheat sheet</h2>
+  <p class="lead">Search the most common codes and terms.</p>
+  <input class="search" id="q" placeholder="Search, e.g. 404, redirect, forbidden...">
+  <div class="card" style="overflow-x:auto"><table><thead><tr><th>Code / term</th><th>Meaning</th></tr></thead><tbody id="cheatBody"></tbody></table></div>
+</section>
+
+<section id="quiz">
+  <h2><span class="n">9</span>Quick quiz</h2>
+  <p class="lead">Check what you learned.</p>
+  <div class="card" id="quizBox"></div>
+</section>
+
+<section id="path">
+  <h2><span class="n">10</span>Your learning roadmap</h2>
+  <p class="lead">Tick items as you go. Progress is saved in your browser.</p>
+  <div class="card"><ul id="road" style="list-style:none"></ul>
+    <div style="margin-top:12px;background:var(--panel2);border-radius:999px;height:12px;overflow:hidden"><div id="bar" style="height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--teal));transition:.3s"></div></div>
+    <small class="lead" id="pct"></small>
+  </div>
+  <div class="callout ok" style="margin-top:16px"><b>Practice tip:</b> open your browser DevTools (F12) → <b>Network</b> tab, reload any site, and click a request. You will see every method, header and status code from this guide for real.</div>
+</section>
+
+</main>
+<footer>HTTP learning mockup · open this file in any browser · no internet needed</footer>
+
+<script>
+/* ---------- URL anatomy ---------- */
+const urlInfo=[
+ ['Scheme / protocol','<code class="i">https</code> means HTTP over TLS. Plain <code class="i">http</code> is unencrypted.'],
+ ['Separator','<code class="i">://</code> separates the scheme from the rest.'],
+ ['Host / domain','The server to contact. DNS turns <code class="i">api.shop.com</code> into an IP address.'],
+ ['Port','<code class="i">:443</code> is the HTTPS default (80 for HTTP). Usually hidden.'],
+ ['Path','Which resource on the server: product number 42.'],
+ ['Query string','Extra parameters as <code class="i">key=value</code> pairs, joined with <code class="i">&amp;</code>.'],
+ ['Fragment','<code class="i">#reviews</code> scrolls to a section. It stays in the browser and is <b>never sent</b> to the server.'],
+];
+document.querySelectorAll('#url span').forEach(s=>s.onclick=()=>{
+ document.querySelectorAll('#url span').forEach(x=>x.classList.remove('on'));s.classList.add('on');
+ const u=urlInfo[+s.dataset.i];document.getElementById('urlInfo').innerHTML=`<b>${u[0]}:</b> ${u[1]}`});
+
+/* ---------- methods ---------- */
+const methods=[
+ ['GET','Read data','Fetch a page or record. Never changes anything.','GET /users/7','200 OK','✔','✔'],
+ ['POST','Create data','Send new data, e.g. submit a form or create an order.','POST /users  {name:"Asha"}','201 Created','✘','✘'],
+ ['PUT','Replace data','Replace a whole record with the data you send.','PUT /users/7  {full object}','200 OK','✘','✔'],
+ ['PATCH','Partly update','Change only some fields.','PATCH /users/7  {email:"new@x.com"}','200 OK','✘','✘ / depends'],
+ ['DELETE','Remove data','Delete the record.','DELETE /users/7','204 No Content','✘','✔'],
+ ['HEAD','Headers only','Like GET but without the body. Check if something exists or changed.','HEAD /big-video.mp4','200 OK (no body)','✔','✔'],
+ ['OPTIONS','Ask what is allowed','Browsers use it for CORS pre-checks.','OPTIONS /users','204 + Allow header','✔','✔'],
+];
+const mB=document.getElementById('mBtns'),mI=document.getElementById('mInfo');
+methods.forEach((m,i)=>{const b=document.createElement('button');b.textContent=m[0];b.onclick=()=>{
+ [...mB.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');
+ mI.innerHTML=`<b style="font-size:1.2rem">${m[0]}</b> · ${m[1]}<p class="lead" style="margin:6px 0">${m[2]}</p>
+  <pre>${m[3]}\n→ <span class="k">${m[4]}</span></pre><span class="tag">Safe: ${m[5]} &nbsp; Idempotent: ${m[6]}</span>`};mB.appendChild(b)});
+mB.children[0].click();
+
+/* ---------- spy ---------- */
+const spy=document.getElementById('spy');
+function setSpy(h){
+ document.getElementById('spyHttp').classList.toggle('on',h);document.getElementById('spyHttps').classList.toggle('on',!h);
+ spy.innerHTML=h?`POST /login HTTP/1.1
+Host: mybank.com
+
+<span class="s">user=asha&amp;password=Secret123</span>
+<span class="c">⚠ Readable by anyone on the path</span>`
+ :`<span class="v">17 03 03 00 4a 9f e1 0c 77 b2 5d
+a3 91 4e 0d c8 3f 62 b0 e7 1a 8d
+5c f4 29 d6 03 ab 70 ... </span>
+<span class="c">🔒 Unreadable scrambled bytes</span>`}
+document.getElementById('spyHttp').onclick=()=>setSpy(true);
+document.getElementById('spyHttps').onclick=()=>setSpy(false);setSpy(true);
+
+/* ---------- TLS handshake ---------- */
+const hs=[
+ ['💻 → 🖥️','Client Hello: "Hi, I support these encryption methods."'],
+ ['🖥️ → 💻','Server Hello: "Let us use this one. Here is my certificate."'],
+ ['💻','Client checks the certificate: signed by a trusted authority? Domain matches? Not expired?'],
+ ['💻 ⇄ 🖥️','Both sides agree on a shared secret key without ever sending it openly (key exchange).'],
+ ['🔒','Handshake done. All HTTP messages are now encrypted with the shared key.'],
+];
+let hi=0;const hsOut=document.getElementById('hsOut');
+document.getElementById('hsNext').onclick=()=>{if(hi<hs.length){const d=document.createElement('div');d.className='msg'+(hi===hs.length-1?' good':'');
+ d.innerHTML=`<b>${hi+1}. ${hs[hi][0]}</b><br>${hs[hi][1]}`;hsOut.appendChild(d);hi++}};
+document.getElementById('hsReset').onclick=()=>{hi=0;hsOut.innerHTML=''};
+
+/* ---------- status codes ---------- */
+const fam=[
+ ['1xx','Informational','c1',[[100,'Continue','Server got the headers, client may send the body.','Large uploads'],[101,'Switching Protocols','Upgrading the connection, e.g. to WebSocket.','Live chat']]],
+ ['2xx','Success','c2',[[200,'OK','Request worked and the body has the result.','Loading a page'],[201,'Created','A new resource was created.','After POST /users'],[202,'Accepted','Received, will be processed later.','Background jobs'],[204,'No Content','Success, nothing to send back.','After DELETE']]],
+ ['3xx','Redirection','c3',[[301,'Moved Permanently','URL changed forever. Browsers and Google update their links.','http → https, old page → new page'],[302,'Found (temporary)','Go to another URL for now, keep using the original later.','Login redirect'],[304,'Not Modified','Your cached copy is still good, no body sent.','Browser cache'],[307,'Temporary Redirect','Like 302 but method must stay the same.','API redirects'],[308,'Permanent Redirect','Like 301 but method must stay the same.','API moved']]],
+ ['4xx','Client error','c4',[[400,'Bad Request','Request is malformed or invalid.','Broken JSON, missing field'],[401,'Unauthorized','You are not logged in (really: unauthenticated).','Missing or expired token'],[403,'Forbidden','Server knows who you are, but you are not allowed.','Normal user opening /admin'],[404,'Not Found','Nothing exists at this URL.','Typo in URL, deleted page'],[405,'Method Not Allowed','That URL does not accept this method.','POST to a read-only URL'],[409,'Conflict','Clashes with current state.','Email already registered'],[422,'Unprocessable Entity','Well-formed but fails validation.','Password too short'],[429,'Too Many Requests','Rate limit hit. Slow down.','Spamming an API']]],
+ ['5xx','Server error','c5',[[500,'Internal Server Error','Generic crash in the server code.','Unhandled exception'],[501,'Not Implemented','Server does not support this feature.','Unknown method'],[502,'Bad Gateway','A proxy got a bad answer from the upstream server.','Nginx cannot reach app'],[503,'Service Unavailable','Server overloaded or in maintenance.','Traffic spike, deploy'],[504,'Gateway Timeout','The upstream server took too long.','Slow database']]],
+];
+const fB=document.getElementById('famBtns'),cB=document.getElementById('codeBtns'),cI=document.getElementById('codeInfo');
+function showFam(f){
+ [...fB.children].forEach((b,i)=>b.classList.toggle('on',i===f));
+ cB.innerHTML='';fam[f][3].forEach((c,i)=>{const b=document.createElement('button');b.className='code '+fam[f][2];b.textContent=c[0];b.onclick=()=>showCode(f,i);cB.appendChild(b)});
+ showCode(f,0)}
+function showCode(f,i){const c=fam[f][3][i];
+ [...cB.children].forEach((b,x)=>b.classList.toggle('on',x===i));
+ cI.innerHTML=`<div class="big ${fam[f][2]}" style="font-weight:800">${c[0]} <span style="font-size:1.2rem">${c[1]}</span></div>
+  <p style="margin:6px 0">${c[2]}</p><span class="tag">Typical example: ${c[3]}</span>`}
+fam.forEach((f,i)=>{const b=document.createElement('button');b.className='cls';b.innerHTML=`<b class="${f[2]}">${f[0]}</b> ${f[1]}`;b.onclick=()=>showFam(i);fB.appendChild(b)});
+showFam(1);
+
+/* ---------- simulator ---------- */
+const reqs=[
+ ['GET /products/42','200 OK','{ "id": 42, "name": "Red Shoes" }','Product exists.'],
+ ['GET /products/9999','404 Not Found','{ "error": "Product not found" }','No such product.'],
+ ['POST /products (valid, with token)','201 Created','{ "id": 43 }\nLocation: /products/43','New product created.'],
+ ['POST /products (empty body)','400 Bad Request','{ "error": "name is required" }','Client sent invalid data.'],
+ ['POST /products (no token)','401 Unauthorized','{ "error": "Login required" }\nWWW-Authenticate: Bearer','Not authenticated.'],
+ ['DELETE /products/42 (normal user)','403 Forbidden','{ "error": "Admins only" }','Logged in but not allowed.'],
+ ['GET /old-shop','301 Moved Permanently','Location: https://shop.com/store','Browser follows automatically.'],
+ ['GET /products 200 times/min','429 Too Many Requests','Retry-After: 30','Rate limited.'],
+ ['GET /report (server bug)','500 Internal Server Error','{ "error": "Something went wrong" }','Not your fault, the server crashed.'],
+ ['GET /products (during deploy)','503 Service Unavailable','Retry-After: 120','Try again later.'],
+];
+const sb=document.getElementById('simBtns'),so=document.getElementById('simOut');
+reqs.forEach(r=>{const b=document.createElement('button');b.textContent=r[0];b.onclick=()=>{
+ const code=+r[1].slice(0,3),cl=['','c1','c2','c3','c4','c5'][Math.floor(code/100)];
+ so.innerHTML=`<span style="color:var(--green)">$ ${r[0]}</span>\n\nHTTP/1.1 <span class="${cl}"><b>${r[1]}</b></span>\n${r[2]}\n\n<span style="color:var(--muted)">→ ${r[3]}</span>`};sb.appendChild(b)});
+
+/* ---------- cheat sheet ---------- */
+const cheat=[
+ ['200','OK: success'],['201','Created: new resource made'],['204','No Content: success, empty body'],
+ ['301','Moved permanently (SEO-friendly redirect)'],['302','Found: temporary redirect'],['304','Not Modified: use your cache'],
+ ['400','Bad request: malformed input'],['401','Unauthorized: log in / bad token'],['403','Forbidden: logged in but no permission'],
+ ['404','Not found: no such URL'],['405','Method not allowed'],['409','Conflict with current state'],['429','Too many requests: rate limit'],
+ ['500','Internal server error: server bug'],['502','Bad gateway: upstream sent garbage'],['503','Service unavailable: overloaded / maintenance'],['504','Gateway timeout: upstream too slow'],
+ ['HTTP','Plain text protocol, port 80'],['HTTPS','HTTP over TLS, port 443'],['TLS','Encryption layer (successor to SSL)'],
+ ['Certificate','Digital ID that proves a server is genuine'],['Stateless','Server keeps no memory between requests'],
+ ['Idempotent','Repeating the request has the same effect (GET, PUT, DELETE)'],['CORS','Browser rule limiting cross-site requests'],
+ ['Cookie','Small value the browser stores and sends back'],['Redirect','Server points the client to another URL'],
+];
+const body=document.getElementById('cheatBody'),q=document.getElementById('q');
+function renderCheat(){const t=q.value.toLowerCase();
+ body.innerHTML=cheat.filter(c=>(c[0]+c[1]).toLowerCase().includes(t)).map(c=>`<tr><td><code>${c[0]}</code></td><td>${c[1]}</td></tr>`).join('')||'<tr><td colspan="2" class="empty">No match</td></tr>'}
+q.oninput=renderCheat;renderCheat();
+
+/* ---------- quiz ---------- */
+const quiz=[
+ ['What does the "S" in HTTPS add?',['Speed','Encryption and identity checking (TLS)','Search engine support'],1],
+ ['Which status code means "page not found"?',['200','403','404'],2],
+ ['A 5xx status code means the problem is...',['On the server side','On the client side','In the URL'],0],
+ ['You are logged in but open an admin-only page. Expected code?',['401','403','301'],1],
+ ['Which method is NOT idempotent?',['GET','PUT','POST'],2],
+ ['A permanent redirect from http to https uses...',['301','404','503'],0],
+ ['Why do websites use cookies/tokens if HTTP is stateless?',['To let the server recognise you across requests','To make pages load faster','To encrypt traffic'],0],
+ ['Default port for HTTPS?',['80','443','8080'],1],
+];
+let qi=0,score=0;const qb=document.getElementById('quizBox');
+function showQ(){
+ if(qi>=quiz.length){qb.innerHTML=`<div class="big">🎉</div><b>Score: ${score} / ${quiz.length}</b><p class="lead">${score>=6?'Great job! You understand the web basics.':'Good start. Re-read the sections and try again.'}</p><button class="primary" onclick="qi=0;score=0;showQ()">Try again</button>`;return}
+ const [t,o,a]=quiz[qi];
+ qb.innerHTML=`<div class="tag">Question ${qi+1} of ${quiz.length}</div><h3 style="margin:6px 0 10px">${t}</h3>`+
+  o.map((x,i)=>`<button class="opt" data-i="${i}">${x}</button>`).join('')+'<div id="fb" class="lead"></div>';
+ qb.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  qb.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(+x.dataset.i===a)x.classList.add('right')});
+  if(+b.dataset.i===a){score++}else b.classList.add('wrong');
+  document.getElementById('fb').innerHTML=(+b.dataset.i===a?'✅ Correct! ':'❌ Not quite. ')+'<button class="primary" onclick="qi++;showQ()">Next</button>';
+ });
+}
+showQ();
+
+/* ---------- roadmap ---------- */
+const road=['Understand client, server, request and response','Read a raw request and response','Know GET, POST, PUT, PATCH, DELETE','Explain HTTP vs HTTPS and TLS','Memorise the 2xx / 3xx / 4xx / 5xx families','Know 200, 201, 301, 400, 401, 403, 404, 500, 503','Inspect real requests in DevTools → Network','Learn cookies, tokens and CORS','Next: REST APIs, HTTP/2 &amp; HTTP/3, caching, DNS'];
+let done={};try{done=JSON.parse(localStorage.getItem('httpRoad')||'{}')}catch(e){}
+const roadEl=document.getElementById('road');
+function paintRoad(){const n=road.filter((_,i)=>done[i]).length,p=Math.round(n/road.length*100);
+ document.getElementById('bar').style.width=p+'%';document.getElementById('pct').textContent=`${n} of ${road.length} done (${p}%)`}
+road.forEach((r,i)=>{const li=document.createElement('li');li.style.padding='5px 0';
+ li.innerHTML=`<label style="cursor:pointer"><input type="checkbox" ${done[i]?'checked':''}> ${r}</label>`;
+ li.querySelector('input').onchange=e=>{done[i]=e.target.checked;try{localStorage.setItem('httpRoad',JSON.stringify(done))}catch(_){}paintRoad()};
+ roadEl.appendChild(li)});
+paintRoad();
+</script>
+</body>
+</html>

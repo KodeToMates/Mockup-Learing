@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playwright with Python - Visual Guide</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#131c2f; --panel2:#1a2540; --line:#273352;
+    --text:#e6ecf8; --muted:#93a1c0; --blue:#38bdf8; --teal:#22d3b6;
+    --amber:#fbbf24; --red:#f87171; --green:#4ade80; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  code,pre{font-family:Consolas,"Cascadia Code",monospace}
+  header.hero{padding:64px 24px 48px;text-align:center;background:radial-gradient(900px 400px at 50% -50%,#22d3b655,transparent),var(--bg)}
+  .hero h1{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-1px}
+  .hero h1 span{color:var(--teal)}
+  .hero p{max-width:680px;margin:14px auto 0;color:var(--muted);font-size:1.1rem}
+  nav{position:sticky;top:0;z-index:10;background:#0b1220ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;padding:10px 16px;justify-content:center}
+  nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;font-size:.88rem;white-space:nowrap}
+  nav a:hover{background:var(--panel2);color:var(--text)}
+  main{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+  section{padding-top:56px}
+  h2{font-size:1.7rem;margin-bottom:6px}
+  h2 .n{display:inline-block;background:var(--teal);color:#04121f;border-radius:8px;padding:0 10px;margin-right:8px;font-size:1.1rem}
+  h3{margin-bottom:6px}
+  .lead{color:var(--muted);margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .big{font-size:2rem}
+  .callout{border-left:4px solid var(--amber);background:#fbbf2414;padding:14px 16px;border-radius:0 10px 10px 0;margin-top:16px}
+  .callout.ok{border-color:var(--green);background:#4ade8014}
+  .callout.bad{border-color:var(--red);background:#f8717114}
+  .callout.info{border-color:var(--blue);background:#38bdf814}
+  pre{background:#070c17;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:.88rem;color:#cfe3ff;margin:10px 0}
+  .k{color:var(--teal)} .s{color:var(--amber)} .v{color:var(--purple)} .c{color:#6b7a99}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 14px;border-radius:9px}
+  button:hover{border-color:var(--teal)}
+  button.primary{background:var(--teal);border-color:var(--teal);color:#04121f;font-weight:600}
+  button.on{background:var(--teal);color:#04121f;border-color:var(--teal);font-weight:600}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  code.i{background:#070c17;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--teal);font-size:.88em}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:600}
+  .pill.good{background:#4ade8026;color:var(--green)}
+  .pill.mid{background:#fbbf2426;color:var(--amber)}
+  .pill.bad{background:#f8717126;color:var(--red)}
+
+  /* flow */
+  .flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px}
+  .node{padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);text-align:center;min-width:120px}
+  .arrow{color:var(--muted);font-size:1.3rem}
+
+  /* fake browser */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  .browser{background:#05080f;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .browser .top{display:flex;gap:6px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel2);font-size:.78rem;color:var(--muted)}
+  .browser .top i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .page{padding:16px;min-height:230px;color:#0b1220;background:#f1f5f9;position:relative}
+  .page h4{margin-bottom:10px}
+  .page input{display:block;width:100%;padding:8px;margin:6px 0;border:1px solid #94a3b8;border-radius:6px;font:inherit}
+  .page .btn{display:inline-block;padding:8px 14px;background:#2563eb;color:#fff;border-radius:6px;margin-top:6px}
+  .page .ok{margin-top:10px;padding:8px;background:#bbf7d0;border-radius:6px;color:#14532d}
+  .hl{outline:3px solid #f59e0b;outline-offset:2px;transition:.2s}
+  .term{background:#05080f;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column}
+  .term .bar{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.8rem}
+  .term .out{padding:12px;font-family:Consolas,monospace;font-size:.85rem;white-space:pre-wrap;min-height:230px;max-height:340px;overflow:auto}
+  .stepline{padding:2px 6px;border-radius:5px}
+  .stepline.now{background:#22d3b633}
+
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:1px}
+  td code{color:var(--teal)}
+  .scroll{overflow-x:auto}
+  .search{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;margin-bottom:12px}
+  .opt{display:block;width:100%;text-align:left;margin:6px 0}
+  .opt.right{border-color:var(--green);background:#4ade8022}
+  .opt.wrong{border-color:var(--red);background:#f8717122}
+  .check{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+  .check input{margin-top:6px;accent-color:var(--green)}
+  .check.done span{text-decoration:line-through;color:var(--muted)}
+  .bar2{height:10px;background:var(--panel2);border-radius:999px;overflow:hidden;margin:8px 0}
+  .bar2 div{height:100%;background:var(--green);width:0;transition:.3s}
+  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="big">🎭</div>
+  <h1>Playwright with <span>Python</span></h1>
+  <p>Control a real browser with code: open pages, click, type, read text, take screenshots and write automated tests. Scroll down or use the menu.</p>
+</header>
+
+<nav>
+  <a href="#what">What is it</a><a href="#setup">Setup</a><a href="#first">First script</a>
+  <a href="#locators">Locators</a><a href="#actions">Actions</a><a href="#sim">Try it</a>
+  <a href="#wait">Auto-wait</a><a href="#test">Testing</a><a href="#tools">Tools</a>
+  <a href="#async">Sync vs Async</a><a href="#cheat">Cheat sheet</a><a href="#quiz">Quiz</a><a href="#path">Roadmap</a>
+</nav>
+
+<main>
+
+<!-- 1 -->
+<section id="what">
+  <h2><span class="n">1</span>What is Playwright?</h2>
+  <p class="lead"><b>Playwright</b> is a library (made by Microsoft) that lets your code drive a real browser: Chromium (Chrome/Edge), Firefox and WebKit (Safari). Anything you can do with a mouse and keyboard, a script can do.</p>
+  <div class="card">
+    <div class="tag">How it works</div>
+    <div class="flow" style="margin-top:12px">
+      <div class="node"><div class="big">🐍</div><b>Your Python</b><br><small>script / test</small></div>
+      <span class="arrow">➜</span>
+      <div class="node"><div class="big">🎭</div><b>Playwright</b><br><small>library</small></div>
+      <span class="arrow">➜</span>
+      <div class="node"><div class="big">🌐</div><b>Browser</b><br><small>Chromium / Firefox / WebKit</small></div>
+      <span class="arrow">➜</span>
+      <div class="node"><div class="big">📄</div><b>Website</b><br><small>the page</small></div>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card"><h3>🧪 Testing</h3><p style="color:var(--muted)">Test your web app end to end: login, checkout, forms.</p></div>
+    <div class="card"><h3>🕷️ Scraping</h3><p style="color:var(--muted)">Read data from sites that need JavaScript to load.</p></div>
+    <div class="card"><h3>🤖 Automation</h3><p style="color:var(--muted)">Fill forms, download reports, take screenshots or PDFs.</p></div>
+  </div>
+  <div class="callout info">It runs <b>headless</b> by default (no visible window, faster). Use <code class="i">headless=False</code> to watch it work while learning.</div>
+</section>
+
+<!-- 2 -->
+<section id="setup">
+  <h2><span class="n">2</span>Setup</h2>
+  <p class="lead">Two things to install: the Python package, then the browsers.</p>
+  <div class="card">
+<pre><span class="c"># 1. (optional) make a virtual environment</span>
+python -m venv .venv
+.venv\Scripts\activate          <span class="c"># Windows</span>
+
+<span class="c"># 2. install the library</span>
+pip install playwright
+
+<span class="c"># 3. download the browsers (one time, ~300MB)</span>
+playwright install
+</pre>
+  </div>
+  <div class="callout">Want the pytest style for testing? Install <code class="i">pip install pytest-playwright</code> instead. It brings Playwright and gives you ready-made <code class="i">page</code> fixtures (section 8).</div>
+  <div class="callout bad">If you get <b>"Executable doesn't exist"</b>, you skipped <code class="i">playwright install</code>.</div>
+</section>
+
+<!-- 3 -->
+<section id="first">
+  <h2><span class="n">3</span>Your first script</h2>
+  <p class="lead">Open a page, read its title, take a screenshot.</p>
+  <div class="card">
+<pre><span class="k">from</span> playwright.sync_api <span class="k">import</span> sync_playwright
+
+<span class="k">with</span> sync_playwright() <span class="k">as</span> p:
+    browser = p.chromium.launch(headless=<span class="v">False</span>)   <span class="c"># 1. start browser</span>
+    page = browser.new_page()                        <span class="c"># 2. open a tab</span>
+    page.goto(<span class="s">"https://example.com"</span>)                <span class="c"># 3. go to URL</span>
+    <span class="k">print</span>(page.title())                              <span class="c"># 4. read the title</span>
+    page.screenshot(path=<span class="s">"example.png"</span>)              <span class="c"># 5. screenshot</span>
+    browser.close()                                  <span class="c"># 6. clean up</span>
+</pre>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card"><h3>Browser</h3><p style="color:var(--muted)">The application itself. Launch once.</p></div>
+    <div class="card"><h3>Context</h3><p style="color:var(--muted)">A fresh, isolated profile (own cookies and storage). Like an incognito window.</p></div>
+    <div class="card"><h3>Page</h3><p style="color:var(--muted)">One tab. This is where you click and type.</p></div>
+  </div>
+  <div class="callout ok"><code class="i">browser.new_page()</code> creates a context and a page for you. For more control use <code class="i">browser.new_context()</code> then <code class="i">context.new_page()</code>.</div>
+</section>
+
+<!-- 4 -->
+<section id="locators">
+  <h2><span class="n">4</span>Locators: finding things on the page</h2>
+  <p class="lead">A <b>locator</b> describes an element. Prefer ones that match what a user sees (role, label, text) over fragile CSS.</p>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>Method</th><th>Example</th><th>Quality</th></tr></thead>
+      <tbody>
+        <tr><td><code>get_by_role</code></td><td><code>page.get_by_role("button", name="Sign in")</code></td><td><span class="pill good">best</span></td></tr>
+        <tr><td><code>get_by_label</code></td><td><code>page.get_by_label("Email")</code></td><td><span class="pill good">great for forms</span></td></tr>
+        <tr><td><code>get_by_placeholder</code></td><td><code>page.get_by_placeholder("Search")</code></td><td><span class="pill good">good</span></td></tr>
+        <tr><td><code>get_by_text</code></td><td><code>page.get_by_text("Welcome")</code></td><td><span class="pill good">good</span></td></tr>
+        <tr><td><code>get_by_test_id</code></td><td><code>page.get_by_test_id("submit")</code></td><td><span class="pill good">stable (needs data-testid)</span></td></tr>
+        <tr><td><code>locator(css)</code></td><td><code>page.locator("#login .btn")</code></td><td><span class="pill mid">ok</span></td></tr>
+        <tr><td><code>locator(xpath)</code></td><td><code>page.locator("//div[3]/a")</code></td><td><span class="pill bad">fragile</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout">Many matches? Narrow with <code class="i">.first</code>, <code class="i">.nth(2)</code>, <code class="i">.filter(has_text="...")</code>, or chain: <code class="i">page.locator("form").get_by_role("button")</code>. Playwright raises an error if a locator matches more than one element when you act on it ("strict mode").</div>
+</section>
+
+<!-- 5 -->
+<section id="actions">
+  <h2><span class="n">5</span>Actions and reading data</h2>
+  <div class="grid g2">
+    <div class="card"><h3>Do things</h3>
+<pre>page.goto(<span class="s">"https://site.com"</span>)
+loc.click()
+loc.fill(<span class="s">"hello"</span>)          <span class="c"># replace text</span>
+loc.press(<span class="s">"Enter"</span>)
+loc.check()  / loc.uncheck()
+loc.select_option(<span class="s">"India"</span>)
+loc.hover()
+loc.set_input_files(<span class="s">"cv.pdf"</span>)
+page.reload()  / page.go_back()</pre></div>
+    <div class="card"><h3>Read things</h3>
+<pre>page.title()
+page.url
+loc.inner_text()
+loc.text_content()
+loc.get_attribute(<span class="s">"href"</span>)
+loc.input_value()
+loc.count()
+loc.all_inner_texts()
+loc.is_visible()</pre></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Extra tricks</h3>
+<pre>page.screenshot(path=<span class="s">"p.png"</span>, full_page=<span class="v">True</span>)
+page.pdf(path=<span class="s">"p.pdf"</span>)                       <span class="c"># Chromium headless only</span>
+<span class="k">with</span> page.expect_download() <span class="k">as</span> d:           <span class="c"># catch a file download</span>
+    page.get_by_text(<span class="s">"Export"</span>).click()
+d.value.save_as(<span class="s">"report.csv"</span>)
+page.on(<span class="s">"dialog"</span>, <span class="k">lambda</span> dlg: dlg.accept())   <span class="c"># handle alert()</span></pre></div>
+</section>
+
+<!-- 6 -->
+<section id="sim">
+  <h2><span class="n">6</span>Try it: watch a script control a page</h2>
+  <p class="lead">Press <b>Run script</b>. The left side is the script, the right side is a fake browser. Each line highlights while it runs.</p>
+  <div class="two">
+    <div class="term">
+      <div class="bar">login_test.py</div>
+      <div class="out" id="code"></div>
+    </div>
+    <div class="browser">
+      <div class="top"><i style="background:#f87171"></i><i style="background:#fbbf24"></i><i style="background:#4ade8c"></i><span id="url" style="margin-left:8px">about:blank</span></div>
+      <div class="page" id="pg"><span style="color:#64748b">(blank page)</span></div>
+    </div>
+  </div>
+  <div class="btnrow"><button class="primary" id="runBtn">▶ Run script</button><button id="resetBtn">Reset</button></div>
+  <div class="callout info" id="simNote">Waiting to run.</div>
+</section>
+
+<!-- 7 -->
+<section id="wait">
+  <h2><span class="n">7</span>Auto-waiting: why Playwright is less flaky</h2>
+  <p class="lead">Before clicking, Playwright automatically waits until the element is <b>visible, enabled, stable and not covered</b>. You rarely need <code class="i">sleep()</code>.</p>
+  <div class="grid g2">
+    <div class="card"><span class="pill bad">AVOID</span>
+<pre>time.sleep(<span class="v">5</span>)      <span class="c"># slow and unreliable</span>
+page.click(<span class="s">"#go"</span>)</pre></div>
+    <div class="card"><span class="pill good">DO</span>
+<pre>page.get_by_role(<span class="s">"button"</span>,
+  name=<span class="s">"Go"</span>).click()   <span class="c"># waits by itself</span></pre></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>When you need to wait explicitly</h3>
+<pre>loc.wait_for(state=<span class="s">"visible"</span>)
+page.wait_for_url(<span class="s">"**/dashboard"</span>)
+page.wait_for_load_state(<span class="s">"networkidle"</span>)
+<span class="k">with</span> page.expect_response(<span class="s">"**/api/users"</span>) <span class="k">as</span> r:   <span class="c"># wait for an API call</span>
+    page.get_by_text(<span class="s">"Load"</span>).click()
+<span class="k">print</span>(r.value.json())
+page.set_default_timeout(<span class="v">10000</span>)               <span class="c"># 10 s instead of default 30 s</span></pre></div>
+</section>
+
+<!-- 8 -->
+<section id="test">
+  <h2><span class="n">8</span>Writing tests with pytest</h2>
+  <p class="lead">Install <code class="i">pytest-playwright</code>. You get a <code class="i">page</code> argument automatically, a fresh one per test.</p>
+  <div class="card">
+<pre><span class="c"># test_login.py</span>
+<span class="k">import</span> re
+<span class="k">from</span> playwright.sync_api <span class="k">import</span> Page, expect
+
+<span class="k">def</span> test_login(page: Page):
+    page.goto(<span class="s">"https://myapp.com/login"</span>)
+    page.get_by_label(<span class="s">"Email"</span>).fill(<span class="s">"me@test.com"</span>)
+    page.get_by_label(<span class="s">"Password"</span>).fill(<span class="s">"secret"</span>)
+    page.get_by_role(<span class="s">"button"</span>, name=<span class="s">"Sign in"</span>).click()
+
+    expect(page).to_have_url(re.compile(<span class="s">r".*/dashboard"</span>))
+    expect(page.get_by_text(<span class="s">"Welcome"</span>)).to_be_visible()
+</pre>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Run it</h3>
+<pre>pytest                              <span class="c"># headless, chromium</span>
+pytest --headed                     <span class="c"># watch the browser</span>
+pytest --browser firefox --browser webkit
+pytest --slowmo 500                 <span class="c"># slow down 0.5s per action</span>
+pytest --tracing on                 <span class="c"># record a trace</span>
+pytest -k login                     <span class="c"># only tests with "login"</span></pre></div>
+  <div class="callout ok"><b>Use <code class="i">expect(...)</code></b> for assertions. It retries until the condition is true or times out, unlike a plain <code class="i">assert</code> which checks only once.</div>
+  <div class="card scroll" style="margin-top:16px"><h3>Common expect checks</h3>
+    <table><tbody>
+      <tr><td><code>to_be_visible()</code></td><td>element is shown</td></tr>
+      <tr><td><code>to_have_text("Hi")</code></td><td>exact text match</td></tr>
+      <tr><td><code>to_contain_text("Hi")</code></td><td>partial text match</td></tr>
+      <tr><td><code>to_have_value("x")</code></td><td>input value</td></tr>
+      <tr><td><code>to_be_enabled() / to_be_disabled()</code></td><td>button state</td></tr>
+      <tr><td><code>to_have_count(3)</code></td><td>number of matches</td></tr>
+      <tr><td><code>to_have_title("..") / to_have_url("..")</code></td><td>page checks</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+<!-- 9 -->
+<section id="tools">
+  <h2><span class="n">9</span>Debugging and power tools</h2>
+  <div class="grid g3">
+    <div class="card"><h3>🎬 Codegen</h3><p style="color:var(--muted)">Click through a site and it writes the Python for you.</p><pre>playwright codegen example.com</pre></div>
+    <div class="card"><h3>🔍 Inspector</h3><p style="color:var(--muted)">Pause and step through code with a live view.</p><pre>PWDEBUG=1 pytest
+<span class="c"># or in code:</span>
+page.pause()</pre></div>
+    <div class="card"><h3>📼 Trace viewer</h3><p style="color:var(--muted)">Time-travel through a failed test: screenshots, network, console.</p><pre>playwright show-trace trace.zip</pre></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Login once, reuse</h3>
+<pre>context.storage_state(path=<span class="s">"auth.json"</span>)
+<span class="c"># later:</span>
+browser.new_context(storage_state=<span class="s">"auth.json"</span>)</pre></div>
+    <div class="card"><h3>Mock the network</h3>
+<pre>page.route(<span class="s">"**/api/users"</span>, <span class="k">lambda</span> r:
+  r.fulfill(json=[{<span class="s">"name"</span>: <span class="s">"Test"</span>}]))</pre></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Mobile emulation</h3>
+<pre>iphone = p.devices[<span class="s">"iPhone 13"</span>]
+ctx = browser.new_context(**iphone)</pre></div>
+    <div class="card"><h3>API testing (no browser)</h3>
+<pre>r = page.request.get(<span class="s">"https://api.site.com/me"</span>)
+<span class="k">assert</span> r.ok</pre></div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="async">
+  <h2><span class="n">10</span>Sync vs Async API</h2>
+  <p class="lead">Playwright for Python ships two flavours. Beginners should start with <b>sync</b>.</p>
+  <div class="grid g2">
+    <div class="card"><h3>Sync (simple)</h3>
+<pre><span class="k">from</span> playwright.sync_api <span class="k">import</span> sync_playwright
+<span class="k">with</span> sync_playwright() <span class="k">as</span> p:
+    b = p.chromium.launch()
+    pg = b.new_page()
+    pg.goto(<span class="s">"https://example.com"</span>)</pre>
+      <p style="color:var(--muted)">Reads top to bottom. Great for scripts and pytest.</p></div>
+    <div class="card"><h3>Async (concurrent)</h3>
+<pre><span class="k">import</span> asyncio
+<span class="k">from</span> playwright.async_api <span class="k">import</span> async_playwright
+<span class="k">async def</span> main():
+    <span class="k">async with</span> async_playwright() <span class="k">as</span> p:
+        b = <span class="k">await</span> p.chromium.launch()
+        pg = <span class="k">await</span> b.new_page()
+        <span class="k">await</span> pg.goto(<span class="s">"https://example.com"</span>)
+asyncio.run(main())</pre>
+      <p style="color:var(--muted)">Use inside async apps (FastAPI) or to run many pages at once.</p></div>
+  </div>
+  <div class="callout bad">Don't use the sync API inside an <code class="i">asyncio</code> loop (Jupyter, FastAPI). You will get <b>"Sync API inside the asyncio loop"</b>. Switch to async.</div>
+</section>
+
+<!-- 11 -->
+<section id="cheat">
+  <h2><span class="n">11</span>Cheat sheet</h2>
+  <input class="search" id="cq" placeholder="Search e.g. click, download, wait...">
+  <div class="card scroll">
+    <table><thead><tr><th>Task</th><th>Code</th></tr></thead><tbody id="cbody"></tbody></table>
+  </div>
+</section>
+
+<!-- 12 -->
+<section id="quiz">
+  <h2><span class="n">12</span>Quiz</h2>
+  <div class="card" id="quizBox"></div>
+</section>
+
+<!-- 13 -->
+<section id="path">
+  <h2><span class="n">13</span>Learning roadmap</h2>
+  <p class="lead">Tick items as you learn. Progress is saved in your browser.</p>
+  <div class="card">
+    <div class="bar2"><div id="pbar"></div></div>
+    <div id="pText" class="tag"></div>
+    <div id="roadmap"></div>
+  </div>
+</section>
+
+</main>
+<footer>Playwright + Python mockup - part of MOCKUP-LEARING</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---- 6. simulator ---- */
+(function(){
+  const lines = [
+    'page.goto("https://myapp.com/login")',
+    'page.get_by_label("Email").fill("me@test.com")',
+    'page.get_by_label("Password").fill("secret")',
+    'page.get_by_role("button", name="Sign in").click()',
+    'expect(page.get_by_text("Welcome")).to_be_visible()'
+  ];
+  const code = $('#code'), pg = $('#pg'), url = $('#url'), note = $('#simNote');
+  let running = false;
+  const paint = n => { code.innerHTML = lines.map((l, i) => `<div class="stepline ${i === n ? 'now' : ''}">${i+1}  ${l.replace(/</g,'&lt;')}</div>`).join(''); };
+  const blank = () => { paint(-1); pg.innerHTML = '<span style="color:#64748b">(blank page)</span>'; url.textContent = 'about:blank'; note.textContent = 'Waiting to run.'; };
+  $('#resetBtn').onclick = () => { if (!running) blank(); };
+  $('#runBtn').onclick = async () => {
+    if (running) return; running = true; blank();
+    paint(0); note.textContent = 'goto: opens the URL and waits for the page to load.'; await sleep(900);
+    url.textContent = 'https://myapp.com/login';
+    pg.innerHTML = '<h4>Sign in</h4><label>Email<input id="fe"></label><label>Password<input id="fp" type="password"></label><span class="btn" id="fb">Sign in</span>';
+    await sleep(900);
+    paint(1); note.textContent = 'get_by_label finds the input by its label text. fill() types into it.';
+    $('#fe').classList.add('hl'); await sleep(700);
+    $('#fe').value = 'me@test.com'; await sleep(700); $('#fe').classList.remove('hl');
+    paint(2); note.textContent = 'Same idea for the password field.';
+    $('#fp').classList.add('hl'); await sleep(700);
+    $('#fp').value = 'secret'; await sleep(700); $('#fp').classList.remove('hl');
+    paint(3); note.textContent = 'get_by_role finds the button. Playwright auto-waits until it is clickable, then clicks.';
+    $('#fb').classList.add('hl'); await sleep(900);
+    url.textContent = 'https://myapp.com/dashboard';
+    pg.innerHTML = '<h4>Dashboard</h4><div class="ok">Welcome back, me@test.com!</div>'; await sleep(900);
+    paint(4); note.textContent = 'expect(...) retries until the text is visible. Test PASSED ✅';
+    pg.querySelector('.ok').classList.add('hl');
+    running = false;
+  };
+  blank();
+})();
+
+/* ---- 11. cheat ---- */
+(function(){
+  const C = [
+    ['Launch visible browser','p.chromium.launch(headless=False)'],
+    ['Slow motion','p.chromium.launch(slow_mo=500)'],
+    ['Open URL','page.goto(url)'],
+    ['Click','page.get_by_role("button", name="OK").click()'],
+    ['Type text','page.get_by_label("Name").fill("Sam")'],
+    ['Type key by key','loc.press_sequentially("abc", delay=100)'],
+    ['Press key','page.keyboard.press("Enter")'],
+    ['Dropdown','loc.select_option("value")'],
+    ['Checkbox','loc.check()'],
+    ['Upload file','loc.set_input_files("file.pdf")'],
+    ['Download file','with page.expect_download() as d: ...; d.value.save_as("f")'],
+    ['Get text','loc.inner_text()'],
+    ['Get all texts','loc.all_inner_texts()'],
+    ['Get link','loc.get_attribute("href")'],
+    ['Count elements','loc.count()'],
+    ['Loop over elements','for i in range(loc.count()): loc.nth(i).inner_text()'],
+    ['Screenshot','page.screenshot(path="a.png", full_page=True)'],
+    ['Wait for element','loc.wait_for(state="visible")'],
+    ['Wait for URL','page.wait_for_url("**/done")'],
+    ['Run JavaScript','page.evaluate("document.title")'],
+    ['New tab on click','with context.expect_page() as t: loc.click()'],
+    ['iframe','page.frame_locator("#f").get_by_text("Hi")'],
+    ['Cookies','context.cookies()'],
+    ['Save login','context.storage_state(path="auth.json")'],
+    ['Assertion','expect(loc).to_have_text("Hi")'],
+    ['Pause to debug','page.pause()']
+  ];
+  const tb = $('#cbody');
+  const draw = q => { tb.innerHTML = C.filter(r => !q || r.join(' ').toLowerCase().includes(q))
+    .map(r => `<tr><td>${r[0]}</td><td><code>${r[1].replace(/</g,'&lt;')}</code></td></tr>`).join(''); };
+  $('#cq').oninput = e => draw(e.target.value.toLowerCase().trim()); draw('');
+})();
+
+/* ---- 12. quiz ---- */
+(function(){
+  const Q = [
+    ['Which command downloads the browsers?', ['pip install playwright','playwright install','python -m browsers','npm install'], 1],
+    ['Which locator is the most recommended?', ['XPath','get_by_role','nth-child CSS','Absolute path'], 1],
+    ['Why is time.sleep() discouraged?', ['It crashes Python','Playwright already auto-waits','It needs async','It only works headless'], 1],
+    ['Which is the right way to assert in Playwright tests?', ['assert only','expect(locator).to_be_visible()','print()','if/else'], 1],
+    ['What does playwright codegen do?', ['Generates code from your clicks','Deletes browsers','Compiles Python','Runs tests in the cloud'], 0],
+    ['Which one gives an isolated profile like incognito?', ['Page','Context','Locator','Frame'], 1],
+    ['You are inside FastAPI (asyncio). Which API do you use?', ['sync_api','async_api','Either','Neither'], 1],
+    ['Which flag lets you watch the browser in pytest?', ['--visible','--headed','--show','--gui'], 1]
+  ];
+  let i = 0, score = 0; const box = $('#quizBox');
+  function draw(){
+    if (i >= Q.length){
+      box.innerHTML = `<h3>Score: ${score} / ${Q.length}</h3><p style="color:var(--muted)">${score >= 7 ? 'Excellent! Ready to automate.' : 'Good start. Re-read the sections and retry.'}</p><button class="primary" id="qr">Retry</button>`;
+      $('#qr').onclick = () => { i = 0; score = 0; draw(); }; return;
+    }
+    const q = Q[i];
+    box.innerHTML = `<div class="tag">Question ${i+1} of ${Q.length}</div><h3 style="margin:6px 0">${q[0]}</h3>` +
+      q[1].map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('');
+    box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      const k = +b.dataset.k;
+      box.querySelectorAll('.opt').forEach((x, j) => { x.disabled = true; if (j === q[2]) x.classList.add('right'); });
+      if (k === q[2]) score++; else b.classList.add('wrong');
+      setTimeout(() => { i++; draw(); }, 1100);
+    });
+  }
+  draw();
+})();
+
+/* ---- 13. roadmap ---- */
+(function(){
+  const items = [
+    'Install playwright and run "playwright install"',
+    'Write the first script: goto, title, screenshot',
+    'Use get_by_role, get_by_label and get_by_text locators',
+    'Fill a form and click a button',
+    'Read text and attributes, loop over a list of elements',
+    'Understand auto-wait and stop using sleep()',
+    'Write a pytest test with expect()',
+    'Record a script with playwright codegen',
+    'Debug a failure with the Trace Viewer',
+    'Reuse login with storage_state, mock an API with page.route',
+    'Try the async API and run tests in CI (GitHub Actions)'
+  ];
+  const KEY = 'playwright-python-roadmap';
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
+  const box = $('#roadmap');
+  items.forEach((t, k) => {
+    const d = document.createElement('label'); d.className = 'check' + (saved.includes(k) ? ' done' : '');
+    d.innerHTML = `<input type="checkbox" ${saved.includes(k) ? 'checked' : ''}><span>${t}</span>`;
+    d.querySelector('input').onchange = e => {
+      d.classList.toggle('done', e.target.checked);
+      saved = e.target.checked ? [...new Set([...saved, k])] : saved.filter(x => x !== k);
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (er) {}
+      prog();
+    };
+    box.appendChild(d);
+  });
+  function prog(){
+    $('#pbar').style.width = (saved.length / items.length * 100) + '%';
+    $('#pText').textContent = `${saved.length} of ${items.length} done`;
+  }
+  prog();
+})();
+</script>
+</body>
+</html>

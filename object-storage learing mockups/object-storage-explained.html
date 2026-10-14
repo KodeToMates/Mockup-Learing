@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Object Storage Explained - S3 vs R2 Visual Guide</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#131c2f; --panel2:#1a2540; --line:#273352;
+    --text:#e6ecf8; --muted:#93a1c0; --orange:#f59e0b; --green:#4ade80;
+    --blue:#38bdf8; --teal:#22d3b6; --amber:#fbbf24; --red:#f87171; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  code,pre{font-family:Consolas,"Cascadia Code",monospace}
+  a{color:var(--orange)}
+  header.hero{padding:64px 24px 48px;text-align:center;background:radial-gradient(900px 400px at 50% -50%,#f59e0b33,transparent),var(--bg)}
+  .hero h1{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-1px}
+  .hero h1 span{color:var(--orange)}
+  .hero p{max-width:640px;margin:14px auto 0;color:var(--muted);font-size:1.1rem}
+  nav{position:sticky;top:0;z-index:10;background:#0b1220ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;padding:10px 16px;justify-content:center}
+  nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;font-size:.88rem;white-space:nowrap}
+  nav a:hover{background:var(--panel2);color:var(--text)}
+  main{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+  section{padding-top:56px}
+  h2{font-size:1.7rem;margin-bottom:6px}
+  h2 .n{display:inline-block;background:var(--orange);color:#1a1002;border-radius:8px;padding:0 10px;margin-right:8px;font-size:1.1rem}
+  .lead{color:var(--muted);margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .big{font-size:2rem}
+  .callout{border-left:4px solid var(--amber);background:#fbbf2414;padding:14px 16px;border-radius:0 10px 10px 0;margin-top:16px}
+  .callout.ok{border-color:var(--green);background:#4ade8014}
+  .callout.go{border-color:var(--orange);background:#f59e0b14}
+  .callout.warn{border-color:var(--red);background:#f8717114}
+  pre{background:#070c17;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:.88rem;color:#cfe3ff;position:relative}
+  pre .c{color:#6b7a99}
+  .k{color:var(--teal)} .s{color:var(--amber)} .v{color:var(--orange)}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 14px;border-radius:9px}
+  button:hover{border-color:var(--orange)}
+  button.primary{background:var(--orange);border-color:var(--orange);color:#1a1002;font-weight:600}
+  button.danger{border-color:#f8717166;color:var(--red)}
+  input.field{font:inherit;padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--text);min-width:180px}
+  .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);margin:3px;font-size:.85rem;cursor:default}
+  .pill.click{cursor:pointer}
+  .pill.click:hover{border-color:var(--orange)}
+  .pill.selected{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .pill.priv .dot{background:var(--muted)}
+  .pill.pub .dot{background:var(--green)}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .empty{color:var(--muted);font-size:.85rem;padding:4px}
+  .hidden{display:none}
+
+  /* analogy */
+  .analogy{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .analogy .box{flex:1;min-width:150px;text-align:center}
+  .arrow{font-size:1.6rem;color:var(--orange)}
+
+  /* flow */
+  .flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+  .flow .step{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:.2s}
+  .flow .step:hover,.flow .step.active{border-color:var(--orange);background:var(--panel2)}
+  .flow .step b{display:block;color:var(--orange)}
+  .flow .step small{color:var(--muted)}
+  .flow .ar{align-self:center;color:var(--muted);font-size:1.4rem}
+
+  /* object chips / concepts */
+  .chiprow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .objchip{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:.85rem;transition:.15s}
+  .objchip:hover,.objchip.active{border-color:var(--orange)}
+  .objchip code{color:var(--teal)}
+
+  /* simulator */
+  .sim{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.sim{grid-template-columns:1fr}}
+  .term{background:#05080f;border:1px solid var(--line);border-radius:12px;min-height:260px;display:flex;flex-direction:column}
+  .term .bar{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.8rem}
+  .term .out{padding:12px;font-family:Consolas,monospace;font-size:.83rem;white-space:pre-wrap;flex:1;max-height:340px;overflow:auto}
+  .term .out .cmd{color:var(--green)}
+  .term .out .err{color:var(--red)}
+  .term .out .note{color:var(--muted)}
+  .host{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:260px}
+  .host h4{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px}
+  .host h4:first-child{margin-top:0}
+  .simfields{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .simfields label{display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--muted)}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .tabs button.on{background:var(--orange);color:#1a1002;border-color:var(--orange);font-weight:600}
+
+  /* cheat table */
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:1px}
+  td code{color:var(--teal);white-space:nowrap}
+  .search{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;margin-bottom:12px}
+
+  /* quiz */
+  .opt{display:block;width:100%;text-align:left;margin:6px 0}
+  .opt.right{border-color:var(--green);background:#4ade8022}
+  .opt.wrong{border-color:var(--red);background:#f8717122}
+
+  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--line)}
+  ul.clean{list-style:none}
+  ul.clean li{padding:4px 0}
+  ul.clean li::before{content:"✔ ";color:var(--green)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="big">🪣</div>
+  <h1>Object storage, <span>explained visually</span></h1>
+  <p>How agencies actually store and serve website assets: images, video, user uploads and backups. Built around the two providers you'll run into most — Amazon S3 and Cloudflare R2.</p>
+</header>
+
+<nav>
+  <a href="#what">What</a><a href="#concepts">Buckets &amp; keys</a><a href="#flow">Serving an asset</a>
+  <a href="#access">Access control</a><a href="#usecases">Use cases</a><a href="#sim">Try it</a>
+  <a href="#providers">S3 vs R2</a><a href="#pitfalls">Pitfalls</a><a href="#cheat">Cheat sheet</a>
+  <a href="#quiz">Quiz</a><a href="#path">Roadmap</a>
+</nav>
+
+<main>
+
+<!-- 1 -->
+<section id="what">
+  <h2><span class="n">1</span>What is object storage?</h2>
+  <p class="lead">A different way of thinking about files: not folders on a hard drive, but one flat bucket full of named files you fetch over the internet.</p>
+  <div class="analogy">
+    <div class="card box"><div class="big">🗄️</div><b>Filesystem thinking</b><br><small>Nested drives and folders: <code>C:\sites\client\images\hero.jpg</code>. The path <em>is</em> the location.</small></div>
+    <div class="arrow">➜</div>
+    <div class="card box"><div class="big">🪣</div><b>Object storage thinking</b><br><small>One flat bucket holding many objects, each with a unique key: <code>images/hero.jpg</code>. No real folders, no server to manage.</small></div>
+  </div>
+  <div class="callout">Object storage is built for exactly one thing: storing and serving files reliably at any scale, reachable over plain HTTP(S) — which is why it is the default place to put a website's images, video and user uploads.</div>
+</section>
+
+<!-- 2 -->
+<section id="concepts">
+  <h2><span class="n">2</span>Buckets, objects &amp; keys</h2>
+  <p class="lead">A bucket is a named container. Everything inside it is an object. Click one below to inspect it.</p>
+  <div class="card">
+    <div class="tag">Bucket: agency-assets</div>
+    <div class="chiprow" id="conceptChips"></div>
+  </div>
+  <div class="card" id="conceptInfo" style="margin-top:16px"><span class="empty">Click an object above.</span></div>
+  <div class="callout ok">The "folders" you see in an S3 or R2 console (like <code>images/</code>) are not real directories — they are just the common text before the last <code>/</code> in a key. Rename a key and the "folder" it sits in changes instantly, because there was never a folder at all, just a string.</div>
+</section>
+
+<!-- 3 -->
+<section id="flow">
+  <h2><span class="n">3</span>Serving a real asset</h2>
+  <p class="lead">How one image on a client's website actually reaches a visitor's browser. Click a stage.</p>
+  <div class="flow" id="flowDiagram"></div>
+  <div class="card" id="flowInfo" style="margin-top:16px"><span class="empty">Click a stage above.</span></div>
+</section>
+
+<!-- 4 -->
+<section id="access">
+  <h2><span class="n">4</span>Access control: public vs private</h2>
+  <p class="lead">Buckets and objects are private by default. You choose what, if anything, becomes reachable by anyone with the link.</p>
+  <div class="analogy">
+    <div class="card box"><div class="big">🔒</div><b>Private (default)</b><br><small>Requesting the direct URL returns <code>403 Forbidden</code>. Nobody can read it without permission.</small></div>
+    <div class="arrow">vs</div>
+    <div class="card box"><div class="big">🌐</div><b>Public</b><br><small>Requesting the direct URL returns <code>200 OK</code> with the file. Anyone with the link can read it, forever.</small></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <b>🔑 The escape hatch: presigned URLs</b>
+    <p class="lead" style="margin:6px 0 10px">Instead of making a whole object public, you can generate a URL that grants temporary, scoped access to just that one object — useful for letting a client download a private invoice or an unreleased draft video without creating them an account.</p>
+    <div class="btnrow"><button class="primary" onclick="genPresign()">Generate a presigned URL</button></div>
+    <pre id="presignOut" class="hidden"></pre>
+    <div id="presignTimer" style="margin-top:8px"></div>
+    <p class="empty" style="margin-top:6px">Demo note: real presigned URLs commonly last around 15 minutes (or whatever you set); this demo is sped up to 20 seconds so you can see it expire.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="usecases">
+  <h2><span class="n">5</span>Practical use cases for an agency</h2>
+  <p class="lead">What actually ends up in a bucket on a typical project.</p>
+  <div class="grid g3">
+    <div class="card"><div class="big">🖼️</div><b>Website assets</b><p class="lead" style="margin:6px 0 0">Images, fonts, CSS/JS bundles served to every visitor.</p></div>
+    <div class="card"><div class="big">📤</div><b>User uploads</b><p class="lead" style="margin:6px 0 0">Profile photos, attachments, form submissions from the app's own users.</p></div>
+    <div class="card"><div class="big">🎬</div><b>Video &amp; media</b><p class="lead" style="margin:6px 0 0">Larger files that benefit from a CDN rather than living on a web server.</p></div>
+    <div class="card"><div class="big">🗃️</div><b>Backups &amp; exports</b><p class="lead" style="margin:6px 0 0">Database dumps, client reports, anything you need kept but rarely touch.</p></div>
+    <div class="card"><div class="big">🌍</div><b>Static site hosting</b><p class="lead" style="margin:6px 0 0">An entire static site served straight out of a bucket, no server at all.</p></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="sim">
+  <h2><span class="n">6</span>Try it: bucket explorer simulator</h2>
+  <p class="lead">A safe playground. Create a bucket, upload objects, toggle access, and generate a presigned URL. Nothing here touches a real cloud account.</p>
+  <div class="simfields">
+    <label>Bucket name<input class="field" id="bucketName" value="agency-assets"></label>
+    <label>Object key<input class="field" id="objectKey" value="images/hero.jpg"></label>
+  </div>
+  <div class="sim">
+    <div class="term"><div class="bar">● ● ●&nbsp; simulated terminal</div><div class="out" id="out"></div></div>
+    <div class="host">
+      <h4>🪣 Buckets</h4><div id="bucketsPanel"></div>
+      <h4>📦 Objects in selected bucket</h4><div id="objectsPanel"></div>
+    </div>
+  </div>
+  <div class="btnrow">
+    <button class="primary" onclick="act('createBucket')">Create Bucket</button>
+    <button onclick="act('selectBucket')">Select Bucket</button>
+    <button class="primary" onclick="act('upload')">Upload Object</button>
+    <button onclick="act('list')">List Objects</button>
+    <button onclick="act('makePublic')">Make Public</button>
+    <button onclick="act('makePrivate')">Make Private</button>
+    <button onclick="act('presign')">Generate Presigned URL</button>
+    <button class="danger" onclick="act('deleteObject')">Delete Object</button>
+    <button class="danger" onclick="act('deleteBucket')">Delete Bucket</button>
+    <button onclick="act('reset')">Reset</button>
+  </div>
+  <div class="callout">Try this order: <b>create → select → upload (a couple of keys) → list → make public → presign → delete object → delete bucket</b>. Then try deleting a bucket that still has objects in it, or presigning a key you never uploaded, to see the real error responses.</div>
+</section>
+
+<!-- 7 -->
+<section id="providers">
+  <h2><span class="n">7</span>Amazon S3 vs Cloudflare R2</h2>
+  <p class="lead">Both are object storage. The differences that actually matter day to day:</p>
+  <div class="card" style="padding:6px 10px">
+    <table>
+      <thead><tr><th>Dimension</th><th>Amazon S3</th><th>Cloudflare R2</th></tr></thead>
+      <tbody>
+        <tr><td>API</td><td>Defines the de facto object storage API</td><td>S3-API-compatible — most existing S3 SDKs/CLIs work by changing the endpoint and credentials</td></tr>
+        <tr><td>Pricing shape</td><td>Charges for storage, requests, <b>and</b> data transferred out (egress)</td><td>Charges for storage and requests; built around little to no egress fees</td></tr>
+        <tr><td>Ecosystem</td><td>Deep integration across AWS: CloudFront, Lambda, IAM, event notifications, many regions</td><td>Rides Cloudflare's global network: integrates naturally with Cloudflare's CDN, Workers and Access</td></tr>
+        <tr><td>Typical CDN pairing</td><td>Usually fronted by CloudFront</td><td>Usually fronted by Cloudflare's own CDN</td></tr>
+        <tr><td>Durability</td><td>Designed for very high durability via replication across multiple facilities</td><td>Designed for very high durability via replication across multiple facilities</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><b>✅ Choose S3 if…</b>
+      <ul class="clean" style="margin-top:8px">
+        <li>You are already deep in the AWS ecosystem</li>
+        <li>You need its broadest feature set (fine-grained IAM, replication, lifecycle tooling)</li>
+        <li>Egress is low or already accounted for</li>
+      </ul>
+    </div>
+    <div class="card"><b>✅ Choose R2 if…</b>
+      <ul class="clean" style="margin-top:8px">
+        <li>You are already on Cloudflare, or want simple CDN pairing</li>
+        <li>Egress cost predictability matters (media-heavy sites with real traffic)</li>
+        <li>You want S3-compatible tooling without AWS's egress bill</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="pitfalls">
+  <h2><span class="n">8</span>Common mistakes &amp; best practices</h2>
+  <p class="lead">The mistakes that actually cost agencies money or cause an incident.</p>
+  <div class="callout warn"><b>Accidentally public buckets.</b> The single most common and most costly mistake. Keep "block public access" on unless you specifically mean to serve a bucket publicly, and double-check before you flip it off.</div>
+  <div class="callout"><b>Serving traffic directly from the bucket.</b> Works fine at low traffic, but skipping a CDN means every visitor hits the origin directly — egress costs and latency both climb fast once a client site gets real traffic.</div>
+  <div class="callout"><b>No lifecycle rules.</b> Old backups, logs and draft uploads pile up forever and quietly inflate the bill. Set a rule to expire or archive what you no longer need.</div>
+  <div class="callout"><b>Overly broad credentials.</b> Giving an app or teammate full account access instead of a scoped, bucket-only policy turns one leaked key into a much bigger incident than it needed to be.</div>
+</section>
+
+<!-- 9 -->
+<section id="cheat">
+  <h2><span class="n">9</span>Cheat sheet</h2>
+  <p class="lead">Search or filter by category.</p>
+  <input class="search" id="q" placeholder="Search terms or commands, e.g. presign, egress, lifecycle...">
+  <div class="tabs" id="cats"></div>
+  <div class="card" style="padding:6px 10px"><table><thead><tr><th>Term / command</th><th>What it means</th></tr></thead><tbody id="cheatBody"></tbody></table></div>
+</section>
+
+<!-- 10 -->
+<section id="quiz">
+  <h2><span class="n">10</span>Quick quiz</h2>
+  <p class="lead">Check what you learned.</p>
+  <div class="card" id="quizBox"></div>
+</section>
+
+<!-- 11 -->
+<section id="path">
+  <h2><span class="n">11</span>Your learning roadmap</h2>
+  <p class="lead">Tick items as you go. Progress is saved in your browser.</p>
+  <div class="card"><ul id="road" style="list-style:none"></ul>
+    <div style="margin-top:12px;background:var(--panel2);border-radius:999px;height:12px;overflow:hidden"><div id="bar" style="height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--teal));transition:.3s"></div></div>
+    <small class="lead" id="pct"></small>
+  </div>
+</section>
+
+</main>
+<footer>Object storage learning mockup · open this file in any browser · no internet needed</footer>
+
+<script>
+/* ---------- concepts chips ---------- */
+const sampleObjects=[
+ {key:'images/hero-banner.jpg',type:'image/jpeg',size:'248 KB',pub:true},
+ {key:'images/logo.png',type:'image/png',size:'12 KB',pub:true},
+ {key:'videos/intro-reel.mp4',type:'video/mp4',size:'18.4 MB',pub:true},
+ {key:'invoices/invoice-2043.pdf',type:'application/pdf',size:'88 KB',pub:false},
+ {key:'backups/2026-10-01-db.sql.gz',type:'application/gzip',size:'3.1 MB',pub:false},
+];
+const ccEl=document.getElementById('conceptChips'),ciEl=document.getElementById('conceptInfo');
+sampleObjects.forEach(o=>{
+ const c=document.createElement('div');c.className='objchip';
+ c.innerHTML=`<code>${o.key}</code>`;
+ c.onclick=()=>{
+  [...ccEl.children].forEach(x=>x.classList.remove('active'));c.classList.add('active');
+  ciEl.innerHTML=`<b>Key:</b> <code>${o.key}</code><br><b>Content-type:</b> ${o.type}<br><b>Size:</b> ${o.size}<br><b>Access:</b> ${o.pub?'🌐 Public':'🔒 Private'}
+   <p class="lead" style="margin:10px 0 0">The text before the last <code>/</code> (<code>${o.key.includes('/')?o.key.split('/').slice(0,-1).join('/'):'(none)'}</code>) looks like a folder in a console, but it is only part of the key string — there is no real directory on disk.</p>`;
+ };
+ ccEl.appendChild(c);
+});
+
+/* ---------- serving-an-asset flow ---------- */
+const flowSteps=[
+ {icon:'💻',title:'Client (browser)',short:'Requests the file',detail:'A visitor\u2019s browser requests an asset, for example <code>&lt;img src="https://cdn.agency.com/images/hero-banner.jpg"&gt;</code>.'},
+ {icon:'🪣',title:'Bucket (origin)',short:'The source of truth',detail:'The very first time that file is requested (or whenever the cache is cold), it is fetched from the bucket \u2014 this is where the agency uploaded the client\u2019s product photos, videos and backups in the first place.'},
+ {icon:'🌍',title:'CDN (edge cache)',short:'Caches it worldwide',detail:'A CDN sitting in front of the bucket caches the file at edge locations around the world, so a visitor in Mumbai does not re-fetch it from a bucket in us-east-1 every single time.',go:'Deep dive on caching and headers: see the HTTP mockup in this collection (<code>http learing mockups/http-explained.html</code>).'},
+ {icon:'🖥️',title:'Browser (final render)',short:'Shows the page',detail:'The browser receives the file from the nearest edge location and renders it on the page \u2014 usually in a few milliseconds, not a round trip to the origin bucket.'},
+];
+const fdEl=document.getElementById('flowDiagram'),fiEl=document.getElementById('flowInfo');
+flowSteps.forEach((s,i)=>{
+ if(i>0){const ar=document.createElement('div');ar.className='ar';ar.textContent='➜';fdEl.appendChild(ar)}
+ const d=document.createElement('div');d.className='step';
+ d.innerHTML=`<div class="big">${s.icon}</div><b>${s.title}</b><small>${s.short}</small>`;
+ d.onclick=()=>{
+  [...fdEl.children].forEach(x=>x.classList&&x.classList.remove('active'));d.classList.add('active');
+  fiEl.innerHTML=`<b>${s.icon} ${s.title}</b><p style="margin:6px 0">${s.detail}</p>${s.go?`<div class="callout go" style="margin-top:10px">${s.go}</div>`:''}`;
+ };
+ fdEl.appendChild(d);
+});
+
+/* ---------- presigned URL demo (section 4) ---------- */
+let presignInterval=null,presignSeconds=0;
+function genPresign(){
+ clearInterval(presignInterval);
+ presignSeconds=20;
+ const out=document.getElementById('presignOut'),timer=document.getElementById('presignTimer');
+ out.classList.remove('hidden');
+ out.textContent='https://agency-assets.s3.amazonaws.com/invoices/invoice-2043.pdf?X-Amz-Expires=900&X-Amz-Signature=3f9a7c1e...(simulated)';
+ tickPresign();
+ presignInterval=setInterval(tickPresign,1000);
+}
+function tickPresign(){
+ const timer=document.getElementById('presignTimer');
+ if(presignSeconds<=0){clearInterval(presignInterval);timer.innerHTML='<span class="pill" style="border-color:var(--red);color:var(--red)"><span class="dot" style="background:var(--red)"></span>Expired \u2014 this link no longer works</span>';return}
+ const m=Math.floor(presignSeconds/60),s=presignSeconds%60;
+ timer.innerHTML=`<span class="pill"><span class="dot"></span>Expires in ${m}:${String(s).padStart(2,'0')} (simulated)</span>`;
+ presignSeconds--;
+}
+
+/* ---------- bucket explorer simulator ---------- */
+let B;
+const out=document.getElementById('out');
+const bucketsPanel=document.getElementById('bucketsPanel'),objectsPanel=document.getElementById('objectsPanel');
+function resetSim(){B={buckets:[],selected:null};out.innerHTML='';say('Welcome! Create a bucket to get started.\n');drawSim()}
+function say(t,c){out.innerHTML+=(c?`<span class="${c}">${t}</span>`:t)+'\n';out.scrollTop=out.scrollHeight}
+function guessType(key){
+ const ext=(key.split('.').pop()||'').toLowerCase();
+ const map={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',gif:'image/gif',webp:'image/webp',mp4:'video/mp4',pdf:'application/pdf',gz:'application/gzip',zip:'application/zip',sql:'application/sql',css:'text/css',js:'application/javascript',json:'application/json'};
+ return map[ext]||'application/octet-stream';
+}
+function randSize(){const sizes=['9 KB','24 KB','88 KB','248 KB','1.1 MB','3.1 MB','18.4 MB'];return sizes[Math.floor(Math.random()*sizes.length)]}
+function findBucket(name){return B.buckets.find(b=>b.name===name)}
+function selectedBucket(){return B.selected==null?null:B.buckets[B.selected]}
+function drawSim(){
+ bucketsPanel.innerHTML=B.buckets.length?B.buckets.map((b,i)=>
+  `<span class="pill click ${b.pub?'pub':'priv'} ${B.selected===i?'selected':''}" data-i="${i}"><span class="dot"></span>${b.name} \u00b7 ${b.objects.length} obj</span>`
+ ).join(''):'<span class="empty">none yet</span>';
+ [...bucketsPanel.querySelectorAll('.pill')].forEach(p=>p.onclick=()=>{B.selected=+p.dataset.i;drawSim()});
+ const sb=selectedBucket();
+ objectsPanel.innerHTML=sb?(sb.objects.length?sb.objects.map(o=>
+  `<span class="pill ${o.pub?'pub':'priv'}" title="${o.type} \u00b7 ${o.size}"><span class="dot"></span>${o.key}</span>`
+ ).join(''):'<span class="empty">bucket is empty</span>'):'<span class="empty">select a bucket first</span>';
+}
+function act(action){
+ const bucketName=document.getElementById('bucketName').value.trim()||'agency-assets';
+ const key=document.getElementById('objectKey').value.trim()||'images/hero.jpg';
+ if(action==='reset'){return resetSim()}
+ if(action==='createBucket'){
+  say('$ aws s3 mb s3://'+bucketName,'cmd');
+  if(findBucket(bucketName)){say('make_bucket failed: An error occurred (BucketAlreadyExists) when calling the CreateBucket operation.','err')}
+  else{B.buckets.push({name:bucketName,pub:false,objects:[]});B.selected=B.buckets.length-1;say('make_bucket: '+bucketName);say('(selected as the active bucket)','note')}
+ }
+ else if(action==='selectBucket'){
+  say('$ aws s3api head-bucket --bucket '+bucketName,'cmd');
+  const idx=B.buckets.findIndex(b=>b.name===bucketName);
+  if(idx<0){say('An error occurred (NoSuchBucket) when calling the HeadBucket operation.','err')}
+  else{B.selected=idx;say(bucketName+' is now the active bucket')}
+ }
+ else if(action==='upload'){
+  say('$ aws s3 cp '+key.split('/').pop()+' s3://'+bucketName+'/'+key,'cmd');
+  const sb=selectedBucket();
+  if(!sb){say('Error: no bucket selected. Select or create a bucket first.','err')}
+  else{
+   const existing=sb.objects.find(o=>o.key===key);
+   if(existing){existing.size=randSize();say('upload: '+key+' (overwritten)')}
+   else{sb.objects.push({key,type:guessType(key),size:randSize(),pub:false});say('upload: '+key+' \u2192 s3://'+sb.name+'/'+key)}
+  }
+ }
+ else if(action==='list'){
+  say('$ aws s3 ls s3://'+bucketName+'/','cmd');
+  const sb=selectedBucket();
+  if(!sb){say('Error: no bucket selected.','err')}
+  else if(!sb.objects.length){say('(bucket is empty)')}
+  else{sb.objects.forEach(o=>say(`${o.pub?'PUBLIC ':'private'}  ${o.size.padStart(8,' ')}  ${o.type.padEnd(22,' ')}  ${o.key}`))}
+ }
+ else if(action==='makePublic'||action==='makePrivate'){
+  const pub=action==='makePublic';
+  say('$ aws s3api put-object-acl --bucket '+bucketName+' --key '+key+' --acl '+(pub?'public-read':'private'),'cmd');
+  const sb=selectedBucket();const o=sb&&sb.objects.find(o=>o.key===key);
+  if(!sb){say('Error: no bucket selected.','err')}
+  else if(!o){say('An error occurred (NoSuchKey) when calling the PutObjectAcl operation.','err')}
+  else{o.pub=pub;say((pub?'object is now PUBLIC: ':'object is now private: ')+key)}
+ }
+ else if(action==='presign'){
+  say('$ aws s3 presign s3://'+bucketName+'/'+key,'cmd');
+  const sb=selectedBucket();const o=sb&&sb.objects.find(o=>o.key===key);
+  if(!sb){say('Error: no bucket selected.','err')}
+  else if(!o){say('An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.','err')}
+  else{say(`https://${sb.name}.s3.amazonaws.com/${key}?X-Amz-Expires=900&X-Amz-Signature=simulated...`);say('(valid for 900 seconds from now, simulated)','note')}
+ }
+ else if(action==='deleteObject'){
+  say('$ aws s3 rm s3://'+bucketName+'/'+key,'cmd');
+  const sb=selectedBucket();const idx=sb&&sb.objects.findIndex(o=>o.key===key);
+  if(!sb){say('Error: no bucket selected.','err')}
+  else if(idx<0){say('An error occurred (NoSuchKey) when calling the DeleteObject operation.','err')}
+  else{sb.objects.splice(idx,1);say('delete: '+key)}
+ }
+ else if(action==='deleteBucket'){
+  say('$ aws s3 rb s3://'+bucketName,'cmd');
+  const idx=B.buckets.findIndex(b=>b.name===bucketName);
+  if(idx<0){say('An error occurred (NoSuchBucket) when calling the DeleteBucket operation.','err')}
+  else if(B.buckets[idx].objects.length){say('An error occurred (BucketNotEmpty) when calling the DeleteBucket operation: The bucket you tried to delete is not empty. Delete all objects first.','err')}
+  else{B.buckets.splice(idx,1);if(B.selected===idx)B.selected=null;else if(B.selected>idx)B.selected--;say('remove_bucket: '+bucketName)}
+ }
+ drawSim();
+}
+resetSim();
+
+/* ---------- cheat sheet ---------- */
+const cheat=[
+ ['Concepts','Bucket','A named, region-scoped top-level container for objects.'],
+ ['Concepts','Object','The actual file (bytes) plus its metadata, stored inside a bucket.'],
+ ['Concepts','Key','The unique string that identifies an object inside a bucket, e.g. images/hero.jpg.'],
+ ['Concepts','Prefix','The part of a key before the last /, shown as a "folder" in consoles but not a real directory.'],
+ ['Concepts','Region','The geographic location where a bucket\u2019s data primarily lives.'],
+ ['Concepts','Metadata','Extra information stored with an object, like content-type and size.'],
+ ['Access','Private (default)','New buckets and objects are not publicly readable until you explicitly allow it.'],
+ ['Access','Public object/bucket','Readable by anyone with the URL, with no authentication.'],
+ ['Access','Bucket policy','Rules attached to a bucket that define who can do what.'],
+ ['Access','Presigned URL','A time-limited, scoped URL that grants temporary access to one private object.'],
+ ['Access','CORS','Rules that control which websites are allowed to fetch a bucket\u2019s objects from the browser.'],
+ ['Access','IAM / API token','Credentials used to authenticate requests to a bucket; keep them scoped narrowly.'],
+ ['Commands','aws s3 mb','Make (create) a new bucket.'],
+ ['Commands','aws s3 cp','Copy a file to or from a bucket (upload/download).'],
+ ['Commands','aws s3 ls','List buckets, or objects inside a bucket.'],
+ ['Commands','aws s3 rm','Delete one object.'],
+ ['Commands','aws s3 rb','Remove (delete) a bucket \u2014 it must be empty first.'],
+ ['Commands','aws s3 presign','Generate a presigned URL for a private object.'],
+ ['Commands','aws s3 sync','Copy only the files that changed between a local folder and a bucket.'],
+ ['Cost & infra','Egress','Data transferred out of the storage provider to the internet \u2014 often the biggest line item.'],
+ ['Cost & infra','CDN','A network of edge servers that caches and serves files close to each visitor.'],
+ ['Cost & infra','Lifecycle rule','An automatic policy to expire, delete or archive objects after a set time.'],
+ ['Cost & infra','Storage class','A pricing/performance tier for data, e.g. frequently accessed vs archival.'],
+ ['Cost & infra','Durability','How unlikely a provider is to ever lose your data, usually via multi-location replication.'],
+];
+const cats=['All',...new Set(cheat.map(c=>c[0]))];let cat='All';
+const catsEl=document.getElementById('cats'),body=document.getElementById('cheatBody'),q=document.getElementById('q');
+function renderCheat(){
+ const t=q.value.toLowerCase();
+ body.innerHTML=cheat.filter(c=>(cat==='All'||c[0]===cat)&&(c[1]+c[2]).toLowerCase().includes(t))
+  .map(c=>`<tr><td><code>${c[1]}</code></td><td>${c[2]}</td></tr>`).join('')||'<tr><td colspan="2" class="empty">No match</td></tr>';
+ [...catsEl.children].forEach(b=>b.classList.toggle('on',b.textContent===cat));
+}
+cats.forEach(c=>{const b=document.createElement('button');b.textContent=c;b.onclick=()=>{cat=c;renderCheat()};catsEl.appendChild(b)});
+q.oninput=renderCheat;renderCheat();
+
+/* ---------- quiz ---------- */
+const quiz=[
+ ['What is a "key" in object storage?',['The unique string that identifies an object inside a bucket','A password used to log into the bucket','A folder on the server\u2019s hard drive','A type of encryption'],0],
+ ['A CDN edge already has an image cached. What happens when a browser requests it again?',['The edge serves it directly, without hitting the origin bucket','It always re-fetches from the bucket first','The request fails','It downloads a fresh copy from the browser\u2019s cache only'],0],
+ ['What does a presigned URL let you do?',['Make an entire bucket public forever','Grant temporary, scoped access to one private object without making it public','Encrypt a file permanently','Change a bucket\u2019s region'],1],
+ ['What is Cloudflare R2\u2019s biggest pricing differentiator from Amazon S3?',['It has no storage cost at all','No/low egress fees for data transferred out','It only works with video files','It requires no bucket names'],1],
+ ['Why do many existing S3 tools and SDKs work against R2 with little or no code change?',['R2 implements an S3-compatible API \u2014 mostly just change the endpoint and credentials','R2 is actually the same company as AWS','S3 tools automatically detect any provider','They do not work against R2 at all'],0],
+ ['You try to delete a bucket and get an error. What is the most likely cause?',['The bucket name is too short','The bucket still contains objects','The bucket is in the wrong color theme','Buckets cannot ever be deleted'],1],
+ ['Why front a bucket with a CDN instead of letting browsers hit it directly?',['It is required by law','Lower latency and reduced origin load, especially for visitors far from the bucket\u2019s region','It makes files smaller automatically','It removes the need for a bucket entirely'],1],
+ ['What is the safest default for a new bucket that will store client uploads?',['Public by default, so it is easy to test','Private by default, with access granted selectively (presigned URLs, policies)','Delete it after one day','Give every teammate full account access'],1],
+];
+let qi=0,score=0;const qb=document.getElementById('quizBox');
+function showQ(){
+ if(qi>=quiz.length){qb.innerHTML=`<div class="big">🎉</div><b>Score: ${score} / ${quiz.length}</b><p class="lead">${score>=6?'Great job! You understand the core model.':'Good start. Re-read the sections above and try again.'}</p><button class="primary" onclick="qi=0;score=0;showQ()">Try again</button>`;return}
+ const [t,o,a]=quiz[qi];
+ qb.innerHTML=`<div class="tag">Question ${qi+1} of ${quiz.length}</div><h3 style="margin:6px 0 10px">${t}</h3>`+
+  o.map((x,i)=>`<button class="opt" data-i="${i}">${x}</button>`).join('')+'<div id="fb" class="lead"></div>';
+ qb.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  qb.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(+x.dataset.i===a)x.classList.add('right')});
+  if(+b.dataset.i===a){score++}else b.classList.add('wrong');
+  document.getElementById('fb').innerHTML=(+b.dataset.i===a?'✅ Correct! ':'❌ Not quite. ')+'<button class="primary" onclick="qi++;showQ()">Next</button>';
+ });
+}
+showQ();
+
+/* ---------- roadmap ---------- */
+const road=[
+ 'Revisit the concepts section \u2014 confirm that keys are strings, not folders',
+ 'Create a real bucket (S3 or R2 free tier) and upload one file',
+ 'Make that object private, generate a presigned URL, and open it before and after it expires',
+ 'Put a CDN in front of the bucket and inspect cache headers in the Network tab \u2014 go deeper: http-explained.html',
+ 'Wire a bucket + CDN into a real app\u2019s asset/upload flow \u2014 go deeper: full-stack-explained.html',
+ 'Estimate a rough monthly egress volume for a real client site and compare it against S3 and R2',
+ 'Audit a bucket\u2019s access policy \u2014 confirm public access is blocked unless intended',
+ 'Add a lifecycle rule to age out or delete old backups and logs',
+];
+let done={};try{done=JSON.parse(localStorage.getItem('objectStorageRoad')||'{}')}catch(e){}
+const rl=document.getElementById('road');
+function paintRoad(){
+ const n=road.filter((_,i)=>done[i]).length;
+ document.getElementById('bar').style.width=(n/road.length*100)+'%';
+ document.getElementById('pct').textContent=`${n} of ${road.length} done`;
+}
+road.forEach((t,i)=>{const li=document.createElement('li');li.style.padding='6px 0';
+ li.innerHTML=`<label style="cursor:pointer"><input type="checkbox" ${done[i]?'checked':''}> Step ${i+1}: ${t}</label>`;
+ li.querySelector('input').onchange=e=>{done[i]=e.target.checked;try{localStorage.setItem('objectStorageRoad',JSON.stringify(done))}catch(_){}paintRoad()};
+ rl.appendChild(li)});
+paintRoad();
+</script>
+</body>
+</html>

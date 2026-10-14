@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computer Networking &amp; WiFi - Visual Guide</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#131c2f; --panel2:#1a2540; --line:#273352;
+    --text:#e6ecf8; --muted:#93a1c0; --blue:#38bdf8; --teal:#22d3b6;
+    --amber:#fbbf24; --red:#f87171; --green:#4ade80; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  code,pre{font-family:Consolas,"Cascadia Code",monospace}
+  header.hero{padding:64px 24px 48px;text-align:center;background:radial-gradient(900px 400px at 50% -50%,#0ea5e955,transparent),var(--bg)}
+  .hero h1{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-1px}
+  .hero h1 span{color:var(--blue)}
+  .hero p{max-width:680px;margin:14px auto 0;color:var(--muted);font-size:1.1rem}
+  nav{position:sticky;top:0;z-index:10;background:#0b1220ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;padding:10px 16px;justify-content:center}
+  nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;font-size:.88rem;white-space:nowrap}
+  nav a:hover{background:var(--panel2);color:var(--text)}
+  main{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+  section{padding-top:56px}
+  h2{font-size:1.7rem;margin-bottom:6px}
+  h2 .n{display:inline-block;background:var(--blue);color:#04121f;border-radius:8px;padding:0 10px;margin-right:8px;font-size:1.1rem}
+  h3{margin-bottom:6px}
+  .lead{color:var(--muted);margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .big{font-size:2rem}
+  .callout{border-left:4px solid var(--amber);background:#fbbf2414;padding:14px 16px;border-radius:0 10px 10px 0;margin-top:16px}
+  .callout.ok{border-color:var(--green);background:#4ade8014}
+  .callout.bad{border-color:var(--red);background:#f8717114}
+  .callout.info{border-color:var(--blue);background:#38bdf814}
+  pre{background:#070c17;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:.88rem;color:#cfe3ff}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 14px;border-radius:9px}
+  button:hover{border-color:var(--blue)}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#04121f;font-weight:600}
+  button.on{background:var(--blue);color:#04121f;border-color:var(--blue);font-weight:600}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .hidden{display:none}
+  code.i{background:#070c17;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--teal);font-size:.88em}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:600}
+  .pill.hw{background:#fbbf2426;color:var(--amber)}
+  .pill.sw{background:#38bdf826;color:var(--blue)}
+  .pill.both{background:#a78bfa26;color:var(--purple)}
+
+  /* home map */
+  .map{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:10px 0 18px}
+  .dev{cursor:pointer;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);text-align:center;min-width:104px;transition:.15s}
+  .dev:hover,.dev.on{border-color:var(--blue);background:#38bdf822;transform:translateY(-2px)}
+  .dev small{display:block;color:var(--muted);font-size:.72rem}
+  .arrow{color:var(--muted);font-size:1.3rem}
+  #devinfo h3{color:var(--blue)}
+
+  /* layers */
+  .layer{display:flex;gap:12px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);margin:6px 0;cursor:pointer}
+  .layer:hover,.layer.on{border-color:var(--blue);background:#38bdf822}
+  .layer .num{background:var(--blue);color:#04121f;font-weight:700;border-radius:8px;min-width:30px;text-align:center}
+  .layer .nm{flex:1}
+  .layer .ex{color:var(--muted);font-size:.82rem}
+
+  /* wifi demo */
+  .wifi{position:relative;height:150px;background:#070c17;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0}
+  .router{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:2rem}
+  .phone{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:2rem;transition:left .2s}
+  .ring{position:absolute;left:34px;top:50%;border:2px solid var(--blue);border-radius:50%;transform:translate(-50%,-50%);opacity:.5;animation:wave 2.4s infinite}
+  .ring:nth-child(3){animation-delay:.8s}.ring:nth-child(4){animation-delay:1.6s}
+  @keyframes wave{from{width:10px;height:10px;opacity:.7}to{width:340px;height:340px;opacity:0}}
+  .bars{display:flex;gap:4px;align-items:flex-end;height:30px}
+  .bars i{width:10px;background:var(--line);border-radius:2px;display:block}
+  .bars i.f{background:var(--green)}
+  input[type=range]{width:100%;accent-color:var(--blue)}
+
+  /* dhcp / dns */
+  .msg{padding:8px 12px;border-radius:9px;margin:6px 0;font-size:.88rem;border:1px solid var(--line);background:var(--panel2);animation:pop .3s}
+  .msg.good{border-color:var(--green);background:#4ade8022}
+  .msg.bad{border-color:var(--red);background:#f8717122}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  .ipbits{font-family:Consolas,monospace;font-size:1.3rem;letter-spacing:1px}
+  .ipbits b{color:var(--teal)}
+
+  /* terminal */
+  .term{background:#05080f;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column}
+  .term .bar{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.8rem}
+  .term .out{padding:12px;font-family:Consolas,monospace;font-size:.85rem;white-space:pre-wrap;min-height:220px;max-height:340px;overflow:auto}
+  .term form{display:flex;border-top:1px solid var(--line)}
+  .term input{flex:1;background:transparent;border:0;color:var(--text);font-family:Consolas,monospace;padding:10px 12px;outline:none}
+
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:1px}
+  td code{color:var(--teal);white-space:nowrap}
+  .scroll{overflow-x:auto}
+  .opt{display:block;width:100%;text-align:left;margin:6px 0}
+  .opt.right{border-color:var(--green);background:#4ade8022}
+  .opt.wrong{border-color:var(--red);background:#f8717122}
+  .check{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+  .check input{margin-top:6px;accent-color:var(--green)}
+  .check.done span{text-decoration:line-through;color:var(--muted)}
+  .bar2{height:10px;background:var(--panel2);border-radius:999px;overflow:hidden;margin:8px 0}
+  .bar2 div{height:100%;background:var(--green);width:0;transition:.3s}
+  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="big">📡</div>
+  <h1>Computer <span>Networking</span> &amp; WiFi</h1>
+  <p>How your phone, laptop and the whole internet connect: the hardware you can touch (router, cables, WiFi) and the software rules that run on it (IP, DNS, TCP). Scroll down or use the menu.</p>
+</header>
+
+<nav>
+  <a href="#what">What is it</a><a href="#home">Home network</a><a href="#hwsw">Hardware vs Software</a>
+  <a href="#wifi">WiFi</a><a href="#ip">IP &amp; DHCP</a><a href="#dns">DNS</a><a href="#layers">Layers</a>
+  <a href="#tcp">TCP / UDP</a><a href="#sim">Terminal</a><a href="#fix">Troubleshoot</a>
+  <a href="#cheat">Cheat sheet</a><a href="#quiz">Quiz</a><a href="#path">Roadmap</a>
+</nav>
+
+<main>
+
+<!-- 1 -->
+<section id="what">
+  <h2><span class="n">1</span>What is this field called?</h2>
+  <p class="lead">The category name is <b>Computer Networking</b> (people also say just <b>"Networking"</b>, and the job is <b>Network Engineering</b>). It is about connecting devices so they can share data. WiFi is one part of it, called <b>Wireless LAN (WLAN)</b>.</p>
+  <div class="grid g3">
+    <div class="card"><div class="big">🏠</div><h3>LAN</h3><p class="tag">Local Area Network</p><p>Devices in one place: your home, office or school. Connected by cable (Ethernet) or WiFi.</p></div>
+    <div class="card"><div class="big">📶</div><h3>WLAN</h3><p class="tag">Wireless LAN</p><p>A LAN that uses radio waves. This is what everyone calls <b>"WiFi"</b>.</p></div>
+    <div class="card"><div class="big">🌍</div><h3>WAN</h3><p class="tag">Wide Area Network</p><p>Many LANs joined over long distance. The <b>Internet</b> is the biggest WAN.</p></div>
+  </div>
+  <div class="callout info">Networking = <b>hardware</b> (things you can touch) + <b>software / protocols</b> (rules that devices follow). Both are needed. Section 3 splits them clearly.</div>
+</section>
+
+<!-- 2 -->
+<section id="home">
+  <h2><span class="n">2</span>Your home network, step by step</h2>
+  <p class="lead">Click each device to see what it does and whether it is hardware, software or both.</p>
+  <div class="card">
+    <div class="map" id="map"></div>
+    <div id="devinfo" class="callout info"></div>
+  </div>
+  <div class="callout">A typical ISP box is often <b>modem + router + WiFi access point in one</b>. They are still three different jobs.</div>
+</section>
+
+<!-- 3 -->
+<section id="hwsw">
+  <h2><span class="n">3</span>Hardware vs Software</h2>
+  <p class="lead">Think of roads and traffic rules. Hardware is the road; software is the rules.</p>
+  <div class="grid g2">
+    <div class="card"><span class="pill hw">HARDWARE</span><h3 style="margin-top:8px">Physical things</h3>
+      <ul style="margin-left:18px;color:var(--muted)">
+        <li><b>Cables</b>: Ethernet (copper), fiber optic</li>
+        <li><b>NIC</b>: network card / WiFi chip in your device</li>
+        <li><b>Modem</b>: talks to the ISP line</li>
+        <li><b>Router</b>: connects networks, picks the path</li>
+        <li><b>Switch</b>: connects wired devices in a LAN</li>
+        <li><b>Access Point</b>: broadcasts WiFi</li>
+        <li><b>Repeater / Mesh node</b>: extends WiFi range</li>
+      </ul></div>
+    <div class="card"><span class="pill sw">SOFTWARE</span><h3 style="margin-top:8px">Rules and programs</h3>
+      <ul style="margin-left:18px;color:var(--muted)">
+        <li><b>IP</b>: addresses for devices</li>
+        <li><b>DHCP</b>: hands out IP addresses automatically</li>
+        <li><b>DNS</b>: turns names into IPs</li>
+        <li><b>TCP / UDP</b>: how data is delivered</li>
+        <li><b>HTTP / HTTPS</b>: web pages</li>
+        <li><b>WPA2 / WPA3</b>: WiFi password encryption</li>
+        <li><b>Firewall</b>: allows or blocks traffic</li>
+        <li><b>Router firmware</b>: the OS inside the router</li>
+      </ul></div>
+  </div>
+  <div class="callout ok">Example: opening google.com. <b>Hardware</b> carries the signal (WiFi chip, router, fiber). <b>Software</b> decides where it goes (DNS finds the IP, TCP delivers, HTTPS secures).</div>
+</section>
+
+<!-- 4 -->
+<section id="wifi">
+  <h2><span class="n">4</span>How WiFi works</h2>
+  <p class="lead">WiFi sends data as radio waves between your device and a router / access point. Drag the slider to move the phone away.</p>
+  <div class="card">
+    <div class="wifi" id="wifibox">
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="router">📡</div><div class="phone" id="phone" style="left:30%">📱</div>
+    </div>
+    <input type="range" id="dist" min="10" max="95" value="30">
+    <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+      <div class="bars" id="bars"><i style="height:8px"></i><i style="height:14px"></i><i style="height:20px"></i><i style="height:26px"></i></div>
+      <div id="wifitxt"></div>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card"><h3>2.4 GHz</h3><p style="color:var(--muted)">Longer range, goes through walls better, <b>slower</b> and crowded.</p></div>
+    <div class="card"><h3>5 GHz</h3><p style="color:var(--muted)">Faster, shorter range. Good in the same room or one wall away.</p></div>
+    <div class="card"><h3>6 GHz (WiFi 6E/7)</h3><p style="color:var(--muted)">Fastest and least crowded, shortest range. Needs new devices.</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>SSID</h3><p style="color:var(--muted)">The WiFi <b>name</b> you see in the list, e.g. "Home_WiFi".</p></div>
+    <div class="card"><h3>Security</h3><p style="color:var(--muted)"><b>WPA3</b> (best) &gt; <b>WPA2</b> (ok) &gt; WEP / Open (unsafe). Always use a strong password.</p></div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="ip">
+  <h2><span class="n">5</span>IP address, MAC and DHCP</h2>
+  <p class="lead">Every device needs an address so data knows where to go.</p>
+  <div class="grid g2">
+    <div class="card"><h3>IP address</h3><div class="ipbits"><b>192.168.1.23</b></div><p style="color:var(--muted)">Logical address. It can change. <b>Private</b> (192.168.x.x, 10.x.x.x) is used inside your home; <b>public</b> is what the internet sees.</p></div>
+    <div class="card"><h3>MAC address</h3><div class="ipbits"><b>A4:C3:F0:85:1B:7E</b></div><p style="color:var(--muted)">Physical ID burned into the network chip. Normally fixed. Used inside the local network.</p></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>DHCP demo: a new phone joins your WiFi</h3>
+    <p style="color:var(--muted)">DHCP runs on the router and gives out addresses automatically (DORA steps).</p>
+    <div class="btnrow"><button class="primary" id="dhcpGo">▶ Connect new phone</button><button id="dhcpReset">Reset</button></div>
+    <div class="two"><div><div class="tag">📱 Phone</div><div id="dhcpL"></div></div><div><div class="tag">📡 Router (DHCP server)</div><div id="dhcpR"></div></div></div>
+  </div>
+  <div class="callout">Subnet mask <code class="i">255.255.255.0</code> means "the first three numbers are the network, the last one is the device". So 192.168.1.x can hold up to 254 devices.</div>
+</section>
+
+<!-- 6 -->
+<section id="dns">
+  <h2><span class="n">6</span>DNS: the phonebook of the internet</h2>
+  <p class="lead">Computers use numbers, humans use names. DNS translates <code class="i">google.com</code> to <code class="i">142.250.x.x</code>.</p>
+  <div class="card">
+    <div class="btnrow"><button class="primary" id="dnsGo">▶ Look up www.example.com</button><button id="dnsReset">Reset</button></div>
+    <div id="dnsOut"></div>
+  </div>
+  <div class="callout">If you can ping <code class="i">8.8.8.8</code> but websites do not open, the problem is <b>DNS</b>, not your internet.</div>
+</section>
+
+<!-- 7 -->
+<section id="layers">
+  <h2><span class="n">7</span>The layers (OSI model)</h2>
+  <p class="lead">Networking is split into 7 layers so each does one job. Click a layer.</p>
+  <div class="card">
+    <div id="layerList"></div>
+    <div class="callout info" id="layerInfo"></div>
+  </div>
+  <div class="callout">Memory trick (top to bottom): <b>A</b>ll <b>P</b>eople <b>S</b>eem <b>T</b>o <b>N</b>eed <b>D</b>ata <b>P</b>rocessing.</div>
+</section>
+
+<!-- 8 -->
+<section id="tcp">
+  <h2><span class="n">8</span>TCP vs UDP, ports and protocols</h2>
+  <div class="grid g2">
+    <div class="card"><h3>TCP: careful</h3><p style="color:var(--muted)">Checks that every piece arrived, in order, and resends lost ones. Slower but reliable. Web, email, downloads.</p></div>
+    <div class="card"><h3>UDP: fast</h3><p style="color:var(--muted)">Sends and does not check. Faster, may lose pieces. Video calls, games, live streams, DNS.</p></div>
+  </div>
+  <div class="card scroll" style="margin-top:16px">
+    <h3>Common ports and protocols</h3>
+    <input id="portq" placeholder="Search e.g. 443 or dns" style="width:100%;padding:10px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--text);margin:8px 0">
+    <table><thead><tr><th>Port</th><th>Protocol</th><th>Used for</th></tr></thead><tbody id="ports"></tbody></table>
+  </div>
+  <div class="callout">An IP address finds the <b>device</b>; a port finds the <b>app</b> on that device (like building address + flat number).</div>
+</section>
+
+<!-- 9 -->
+<section id="sim">
+  <h2><span class="n">9</span>Try it: terminal simulator</h2>
+  <p class="lead">Type a command (simulated, nothing is sent). Try: <code class="i">help</code>, <code class="i">ipconfig</code>, <code class="i">ping google.com</code>, <code class="i">nslookup google.com</code>, <code class="i">tracert google.com</code>, <code class="i">clear</code>.</p>
+  <div class="term">
+    <div class="bar">Command Prompt (simulated)</div>
+    <div class="out" id="tout">Type "help" to begin.
+</div>
+    <form id="tform"><input id="tin" autocomplete="off" placeholder="> type a command and press Enter"></form>
+  </div>
+  <div class="btnrow">
+    <button data-c="ipconfig">ipconfig</button><button data-c="ping google.com">ping google.com</button>
+    <button data-c="nslookup google.com">nslookup google.com</button><button data-c="tracert google.com">tracert google.com</button>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="fix">
+  <h2><span class="n">10</span>"My WiFi is not working" checklist</h2>
+  <p class="lead">Go top to bottom. Most problems are solved in the first four steps.</p>
+  <div class="card">
+    <div class="check"><span>1. Is WiFi turned on and airplane mode off on your device?</span></div>
+    <div class="check"><span>2. Do other devices work? <b>Yes</b>: problem is your device. <b>No</b>: problem is router / ISP.</span></div>
+    <div class="check"><span>3. Restart the router: unplug 30 seconds, plug back in. Wait 2 minutes.</span></div>
+    <div class="check"><span>4. Forget the WiFi network on your device and reconnect with the password.</span></div>
+    <div class="check"><span>5. Check cables: Ethernet and modem line fully inserted, lights on?</span></div>
+    <div class="check"><span>6. <code class="i">ping 8.8.8.8</code> works but sites do not open? Change DNS to 8.8.8.8 or 1.1.1.1.</span></div>
+    <div class="check"><span>7. Weak signal? Move closer, switch to 2.4 GHz for range, or add a mesh node.</span></div>
+    <div class="check"><span>8. Still down? Call your ISP, the line may be cut.</span></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section id="cheat">
+  <h2><span class="n">11</span>Cheat sheet</h2>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>Term</th><th>Meaning</th><th>Type</th></tr></thead>
+      <tbody>
+        <tr><td><code>Modem</code></td><td>Connects your home to the ISP line</td><td><span class="pill hw">hardware</span></td></tr>
+        <tr><td><code>Router</code></td><td>Sends traffic between your network and the internet</td><td><span class="pill both">both</span></td></tr>
+        <tr><td><code>Switch</code></td><td>Connects many wired devices in a LAN</td><td><span class="pill hw">hardware</span></td></tr>
+        <tr><td><code>Access Point</code></td><td>Gives WiFi to devices</td><td><span class="pill hw">hardware</span></td></tr>
+        <tr><td><code>IP</code></td><td>Logical address of a device</td><td><span class="pill sw">software</span></td></tr>
+        <tr><td><code>MAC</code></td><td>Physical address of a network chip</td><td><span class="pill hw">hardware</span></td></tr>
+        <tr><td><code>DHCP</code></td><td>Auto-assigns IP addresses</td><td><span class="pill sw">software</span></td></tr>
+        <tr><td><code>DNS</code></td><td>Name to IP lookup</td><td><span class="pill sw">software</span></td></tr>
+        <tr><td><code>Gateway</code></td><td>The router address your device uses to leave the LAN</td><td><span class="pill sw">software</span></td></tr>
+        <tr><td><code>Firewall</code></td><td>Blocks or allows traffic by rules</td><td><span class="pill both">both</span></td></tr>
+        <tr><td><code>VPN</code></td><td>Encrypted tunnel over the internet</td><td><span class="pill sw">software</span></td></tr>
+        <tr><td><code>Bandwidth</code></td><td>Max data per second (Mbps)</td><td>measure</td></tr>
+        <tr><td><code>Latency / ping</code></td><td>Delay in milliseconds</td><td>measure</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 12 -->
+<section id="quiz">
+  <h2><span class="n">12</span>Quiz</h2>
+  <div class="card" id="quizBox"></div>
+</section>
+
+<!-- 13 -->
+<section id="path">
+  <h2><span class="n">13</span>Learning roadmap</h2>
+  <p class="lead">Tick items as you learn. Progress is saved in your browser.</p>
+  <div class="card">
+    <div class="bar2"><div id="pbar"></div></div>
+    <div id="pText" class="tag"></div>
+    <div id="roadmap"></div>
+  </div>
+  <div class="callout info">Certifications that prove this skill: <b>CompTIA Network+</b> (beginner, vendor neutral) then <b>Cisco CCNA</b> (the industry standard).</div>
+</section>
+
+</main>
+<footer>Networking mockup - part of MOCKUP-LEARING</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---- 2. home map ---- */
+const devices = [
+  {i:'🌍', n:'Internet', t:'sw', d:'The global network of networks. Your ISP connects you to it.'},
+  {i:'🏢', n:'ISP', t:'both', d:'Internet Service Provider (Jio, Airtel, BSNL...). Sells you the connection through fiber, cable or phone line.'},
+  {i:'📦', n:'Modem', t:'hw', d:'Converts the ISP signal (fiber/cable) into one your router understands, and back. Usually has one cable going to the ISP and one to the router.'},
+  {i:'🔀', n:'Router', t:'both', d:'The traffic manager. Hardware box running software (firmware). Gives devices IP addresses (DHCP), does NAT, has a firewall, and forwards data to the internet.'},
+  {i:'🔌', n:'Switch', t:'hw', d:'Adds more Ethernet ports. Sends data only to the port of the right device using MAC addresses.'},
+  {i:'📡', n:'Access Point', t:'hw', d:'Turns the wired network into WiFi radio waves. Often built into the router.'},
+  {i:'💻', n:'Devices', t:'hw', d:'Laptop, phone, TV, printer. Each has a NIC (wired or WiFi chip) with its own MAC address.'}
+];
+const tmap = {hw:'HARDWARE', sw:'SOFTWARE / SERVICE', both:'HARDWARE + SOFTWARE'};
+(function(){
+  const m = $('#map');
+  devices.forEach((d, k) => {
+    const el = document.createElement('div');
+    el.className = 'dev'; el.innerHTML = `<div class="big">${d.i}</div><b>${d.n}</b>`;
+    el.onclick = () => show(k);
+    m.appendChild(el);
+    if (k < devices.length - 1) m.insertAdjacentHTML('beforeend', '<span class="arrow">➜</span>');
+  });
+  function show(k){
+    document.querySelectorAll('.dev').forEach((e, j) => e.classList.toggle('on', j === k));
+    const d = devices[k];
+    $('#devinfo').innerHTML = `<h3>${d.i} ${d.n}</h3><span class="pill ${d.t}">${tmap[d.t]}</span><p style="margin-top:8px">${d.d}</p>`;
+  }
+  show(3);
+})();
+
+/* ---- 4. wifi ---- */
+(function(){
+  const s = $('#dist'), ph = $('#phone'), bars = [...document.querySelectorAll('#bars i')];
+  function upd(){
+    const v = +s.value; ph.style.left = v + '%';
+    const lv = v < 30 ? 4 : v < 50 ? 3 : v < 72 ? 2 : v < 88 ? 1 : 0;
+    bars.forEach((b, i) => b.classList.toggle('f', i < lv));
+    const txt = ['No signal. Move closer.', 'Very weak. Pages barely load.', 'Okay for browsing.', 'Good. Streaming works.', 'Excellent. Full speed.'][lv];
+    $('#wifitxt').innerHTML = `<b>${txt}</b><div class="tag">Distance from router: ${Math.round(v/10)} m (walls make it worse)</div>`;
+  }
+  s.oninput = upd; upd();
+})();
+
+/* ---- 5. dhcp ---- */
+(function(){
+  const L = $('#dhcpL'), R = $('#dhcpR');
+  const add = (el, t, c) => el.insertAdjacentHTML('beforeend', `<div class="msg ${c||''}">${t}</div>`);
+  const clear = () => { L.innerHTML = ''; R.innerHTML = ''; };
+  let run = false;
+  $('#dhcpReset').onclick = clear;
+  $('#dhcpGo').onclick = async () => {
+    if (run) return; run = true; clear();
+    add(L, '1. <b>Discover</b>: "Is there a DHCP server? I need an address!" (broadcast)'); await sleep(900);
+    add(R, '2. <b>Offer</b>: "You can have 192.168.1.23 for 24 hours."'); await sleep(900);
+    add(L, '3. <b>Request</b>: "Yes please, I will take 192.168.1.23."'); await sleep(900);
+    add(R, '4. <b>Acknowledge</b>: "Done. Gateway 192.168.1.1, DNS 8.8.8.8."', 'good'); await sleep(500);
+    add(L, '✅ Connected as 192.168.1.23', 'good');
+    run = false;
+  };
+})();
+
+/* ---- 6. dns ---- */
+(function(){
+  const out = $('#dnsOut'); let run = false;
+  const steps = [
+    ['💻 Browser', 'Needs the IP of www.example.com. Checks its own cache: <b>not found</b>.'],
+    ['🔀 Router / ISP resolver', 'Asked. Cache empty, so it asks the root server.'],
+    ['🌐 Root server', '"I do not know example.com, but .com servers do. Ask them."'],
+    ['🏷️ .com TLD server', '"Ask example.com\'s name server at ns1.example.com."'],
+    ['📖 Authoritative server', '"www.example.com is <b>93.184.216.34</b>."']
+  ];
+  $('#dnsReset').onclick = () => { out.innerHTML = ''; };
+  $('#dnsGo').onclick = async () => {
+    if (run) return; run = true; out.innerHTML = '';
+    for (const [w, t] of steps){ out.insertAdjacentHTML('beforeend', `<div class="msg"><b>${w}</b><br>${t}</div>`); await sleep(1000); }
+    out.insertAdjacentHTML('beforeend', '<div class="msg good">✅ Browser connects to 93.184.216.34 and the answer is cached for next time.</div>');
+    run = false;
+  };
+})();
+
+/* ---- 7. layers ---- */
+(function(){
+  const L = [
+    [7,'Application','HTTP, DNS, FTP, SMTP','What apps use: browser, email, chat. The thing you see.'],
+    [6,'Presentation','TLS, JPEG, encryption','Formats and encrypts data so both sides understand it.'],
+    [5,'Session','Login sessions','Opens, keeps and closes conversations between two devices.'],
+    [4,'Transport','TCP, UDP, ports','Splits data into pieces, picks reliable (TCP) or fast (UDP).'],
+    [3,'Network','IP, router','Addresses and routing: finds the path across networks.'],
+    [2,'Data Link','MAC, switch, WiFi','Moves data between devices on the same local network.'],
+    [1,'Physical','Cable, radio, NIC','Actual signals: electricity, light or radio waves.']
+  ];
+  const box = $('#layerList');
+  L.forEach((l, k) => {
+    const e = document.createElement('div'); e.className = 'layer';
+    e.innerHTML = `<span class="num">${l[0]}</span><span class="nm"><b>${l[1]}</b></span><span class="ex">${l[2]}</span>`;
+    e.onclick = () => sel(k); box.appendChild(e);
+  });
+  function sel(k){
+    [...box.children].forEach((e, j) => e.classList.toggle('on', j === k));
+    $('#layerInfo').innerHTML = `<b>Layer ${L[k][0]} - ${L[k][1]}</b><br>${L[k][3]}${k >= 5 ? '<br><span class="pill hw">mostly hardware</span>' : k <= 3 && k >= 2 ? '' : ''}`;
+  }
+  sel(0);
+})();
+
+/* ---- 8. ports ---- */
+(function(){
+  const P = [
+    [20,'FTP data','File transfer'],[21,'FTP','File transfer control'],[22,'SSH','Secure remote login'],
+    [25,'SMTP','Sending email'],[53,'DNS','Name to IP lookup'],[67,'DHCP','Give out IP addresses'],
+    [80,'HTTP','Web pages (not encrypted)'],[110,'POP3','Receiving email'],[143,'IMAP','Receiving email'],
+    [443,'HTTPS','Secure web pages'],[3306,'MySQL','Database'],[3389,'RDP','Windows remote desktop']
+  ];
+  const tb = $('#ports');
+  function draw(q){
+    tb.innerHTML = P.filter(r => !q || r.join(' ').toLowerCase().includes(q))
+      .map(r => `<tr><td><code>${r[0]}</code></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+  }
+  $('#portq').oninput = e => draw(e.target.value.toLowerCase().trim()); draw('');
+})();
+
+/* ---- 9. terminal ---- */
+(function(){
+  const out = $('#tout'), inp = $('#tin');
+  const print = t => { out.textContent += t + '\n'; out.scrollTop = out.scrollHeight; };
+  async function run(cmd){
+    print('> ' + cmd);
+    const [c, arg] = cmd.trim().split(/\s+/);
+    switch ((c || '').toLowerCase()){
+      case '': return;
+      case 'help': print('Commands: ipconfig, ping <host>, nslookup <host>, tracert <host>, clear'); break;
+      case 'clear': out.textContent = ''; break;
+      case 'ipconfig':
+        print('Wireless LAN adapter Wi-Fi:\n   IPv4 Address. . . . : 192.168.1.23\n   Subnet Mask . . . . : 255.255.255.0\n   Default Gateway . . : 192.168.1.1\n   DNS Servers . . . . : 8.8.8.8'); break;
+      case 'ping':
+        if (!arg) { print('Usage: ping <host>'); break; }
+        print(`Pinging ${arg} [142.250.183.14] with 32 bytes of data:`);
+        for (let i = 0; i < 4; i++){ await sleep(500); print(`Reply from 142.250.183.14: bytes=32 time=${18 + Math.floor(Math.random()*12)}ms TTL=117`); }
+        print('Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)'); break;
+      case 'nslookup':
+        if (!arg) { print('Usage: nslookup <host>'); break; }
+        print(`Server:  dns.google\nAddress: 8.8.8.8\n\nName:    ${arg}\nAddress: 142.250.183.14`); break;
+      case 'tracert':
+        if (!arg) { print('Usage: tracert <host>'); break; }
+        print(`Tracing route to ${arg} [142.250.183.14]:`);
+        const hops = ['192.168.1.1 (your router)', '10.20.0.1 (ISP gateway)', '115.110.5.9 (ISP backbone)', '72.14.205.1 (Google edge)', '142.250.183.14 (destination)'];
+        for (let i = 0; i < hops.length; i++){ await sleep(450); print(`  ${i+1}   ${4 + i*6} ms   ${hops[i]}`); }
+        print('Trace complete.'); break;
+      default: print(`'${c}' is not recognized. Type "help".`);
+    }
+  }
+  $('#tform').onsubmit = async e => { e.preventDefault(); const v = inp.value; inp.value = ''; await run(v); };
+  document.querySelectorAll('[data-c]').forEach(b => b.onclick = () => run(b.dataset.c));
+})();
+
+/* ---- 12. quiz ---- */
+(function(){
+  const Q = [
+    ['What is the field of WiFi, routers and the internet called?', ['Computer Networking','Web Design','Data Science','Cyber Forensics'], 0],
+    ['Which device broadcasts WiFi?', ['Switch','Access Point','Modem','Cable'], 1],
+    ['What does DNS do?', ['Gives IP addresses','Encrypts WiFi','Turns names into IP addresses','Blocks viruses'], 2],
+    ['What does DHCP do?', ['Auto-assigns IP addresses','Stores websites','Boosts WiFi range','Finds MAC addresses'], 0],
+    ['Which is better for video calls and games?', ['TCP','UDP','FTP','SSH'], 1],
+    ['Ping 8.8.8.8 works but websites do not open. Likely problem?', ['Bad cable','DNS','Router power','Wrong password'], 1],
+    ['Which WiFi band has the longest range?', ['2.4 GHz','5 GHz','6 GHz','60 GHz'], 0]
+  ];
+  let i = 0, score = 0; const box = $('#quizBox');
+  function draw(){
+    if (i >= Q.length){
+      box.innerHTML = `<h3>Score: ${score} / ${Q.length}</h3><p style="color:var(--muted)">${score >= 6 ? 'Great! You understand the basics.' : 'Good start. Re-read the sections and try again.'}</p><button class="primary" id="qr">Retry</button>`;
+      $('#qr').onclick = () => { i = 0; score = 0; draw(); }; return;
+    }
+    const q = Q[i];
+    box.innerHTML = `<div class="tag">Question ${i+1} of ${Q.length}</div><h3 style="margin:6px 0">${q[0]}</h3>` +
+      q[1].map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('');
+    box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      const k = +b.dataset.k;
+      box.querySelectorAll('.opt').forEach((x, j) => { x.disabled = true; if (j === q[2]) x.classList.add('right'); });
+      if (k === q[2]) score++; else b.classList.add('wrong');
+      setTimeout(() => { i++; draw(); }, 1100);
+    });
+  }
+  draw();
+})();
+
+/* ---- 13. roadmap ---- */
+(function(){
+  const items = [
+    'Know the category: Computer Networking (LAN, WLAN, WAN)',
+    'Identify modem, router, switch and access point at home',
+    'Understand IP, MAC, subnet and DHCP',
+    'Understand DNS and what happens when you open a website',
+    'Learn the OSI / TCP-IP layers',
+    'Use ping, ipconfig, nslookup and tracert on your own PC',
+    'Learn TCP vs UDP and common ports',
+    'Secure WiFi: WPA3, strong password, update router firmware',
+    'Try Cisco Packet Tracer (free) to build a virtual network',
+    'Study for CompTIA Network+ then Cisco CCNA'
+  ];
+  const KEY = 'networking-roadmap';
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
+  const box = $('#roadmap');
+  items.forEach((t, k) => {
+    const d = document.createElement('label'); d.className = 'check' + (saved.includes(k) ? ' done' : '');
+    d.innerHTML = `<input type="checkbox" ${saved.includes(k) ? 'checked' : ''}><span>${t}</span>`;
+    d.querySelector('input').onchange = e => {
+      d.classList.toggle('done', e.target.checked);
+      saved = e.target.checked ? [...new Set([...saved, k])] : saved.filter(x => x !== k);
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (er) {}
+      prog();
+    };
+    box.appendChild(d);
+  });
+  function prog(){
+    $('#pbar').style.width = (saved.length / items.length * 100) + '%';
+    $('#pText').textContent = `${saved.length} of ${items.length} done`;
+  }
+  prog();
+})();
+</script>
+</body>
+</html>

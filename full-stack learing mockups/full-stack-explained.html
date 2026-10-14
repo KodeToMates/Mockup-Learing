@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full Stack Explained - Visual Guide</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#131c2f; --panel2:#1a2540; --line:#273352;
+    --text:#e6ecf8; --muted:#93a1c0; --violet:#a78bfa; --green:#4ade80;
+    --blue:#38bdf8; --teal:#22d3b6; --amber:#fbbf24; --red:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  code,pre{font-family:Consolas,"Cascadia Code",monospace}
+  a{color:var(--violet)}
+  header.hero{padding:64px 24px 48px;text-align:center;background:radial-gradient(900px 400px at 50% -50%,#7c3aed33,transparent),var(--bg)}
+  .hero h1{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-1px}
+  .hero h1 span{color:var(--violet)}
+  .hero p{max-width:640px;margin:14px auto 0;color:var(--muted);font-size:1.1rem}
+  nav{position:sticky;top:0;z-index:10;background:#0b1220ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;padding:10px 16px;justify-content:center}
+  nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;font-size:.88rem;white-space:nowrap}
+  nav a:hover{background:var(--panel2);color:var(--text)}
+  main{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+  section{padding-top:56px}
+  h2{font-size:1.7rem;margin-bottom:6px}
+  h2 .n{display:inline-block;background:var(--violet);color:#120a28;border-radius:8px;padding:0 10px;margin-right:8px;font-size:1.1rem}
+  .lead{color:var(--muted);margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .big{font-size:2rem}
+  .callout{border-left:4px solid var(--amber);background:#fbbf2414;padding:14px 16px;border-radius:0 10px 10px 0;margin-top:16px}
+  .callout.ok{border-color:var(--green);background:#4ade8014}
+  .callout.go{border-color:var(--violet);background:#a78bfa14}
+  pre{background:#070c17;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:.88rem;color:#cfe3ff;position:relative}
+  pre .c{color:#6b7a99}
+  .k{color:var(--teal)} .s{color:var(--amber)} .v{color:var(--violet)}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 14px;border-radius:9px}
+  button:hover{border-color:var(--violet)}
+  button.primary{background:var(--violet);border-color:var(--violet);color:#120a28;font-weight:600}
+  button.danger{border-color:#f8717166;color:var(--red)}
+  .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);margin:3px;font-size:.85rem}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .empty{color:var(--muted);font-size:.85rem;padding:4px}
+
+  /* analogy */
+  .analogy{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .analogy .box{flex:1;min-width:150px;text-align:center}
+  .arrow{font-size:1.6rem;color:var(--violet)}
+
+  /* flow */
+  .flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+  .flow .step{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;transition:.2s}
+  .flow .step b{display:block;color:var(--violet)}
+  .flow .step small{color:var(--muted)}
+  .flow .step.active{border-color:var(--violet);box-shadow:0 0 0 1px var(--violet),0 0 16px #a78bfa44}
+  .flow .ar{align-self:center;color:var(--muted);font-size:1.4rem}
+
+  /* request log */
+  .log{background:#05080f;border:1px solid var(--line);border-radius:12px;min-height:150px;padding:12px;font-family:Consolas,monospace;font-size:.85rem;white-space:pre-wrap;max-height:260px;overflow:auto;margin-top:14px}
+  .log .you{color:var(--green)}
+
+  /* map layers */
+  .stack{display:flex;flex-direction:column;gap:8px}
+  .layer{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+  .layer.active{border-color:var(--chip,var(--violet))}
+  .layer-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;background:var(--panel)}
+  .layer-head:hover{background:var(--panel2)}
+  .layer-chip{width:12px;height:12px;border-radius:50%;background:var(--chip,var(--violet));flex-shrink:0}
+  .layer-head b{flex:1}
+  .layer-head .car{color:var(--muted);transition:.2s}
+  .layer.active .layer-head .car{transform:rotate(90deg);color:var(--chip,var(--violet))}
+  .layer-body{max-height:0;overflow:hidden;transition:.25s}
+  .layer.active .layer-body{max-height:500px}
+  .layer-body-in{padding:0 16px 16px 44px}
+  .catlist{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
+  .catlist span{font-size:.78rem;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted)}
+  .maparrow{text-align:center;color:var(--muted);font-size:1.1rem;padding:2px 0}
+
+  /* pyramid */
+  .pyramid{display:flex;flex-direction:column;align-items:center;gap:6px;margin:10px 0}
+  .pyramid .row{border-radius:10px;padding:14px;text-align:center;cursor:pointer;border:1px solid var(--line);transition:.2s;color:#120a28;font-weight:600}
+  .pyramid .row:hover,.pyramid .row.active{outline:2px solid var(--text)}
+  .pyramid .row.e2e{width:38%;background:var(--red)}
+  .pyramid .row.integration{width:62%;background:var(--amber)}
+  .pyramid .row.unit{width:92%;background:var(--green)}
+  .pyramid .row small{display:block;font-weight:400;opacity:.85}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .tabs button.on{background:var(--violet);color:#120a28;border-color:var(--violet);font-weight:600}
+  .hidden{display:none}
+
+  /* cheat table */
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:1px}
+  td code{color:var(--teal);white-space:nowrap}
+  .search{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;margin-bottom:12px}
+
+  /* quiz */
+  .opt{display:block;width:100%;text-align:left;margin:6px 0}
+  .opt.right{border-color:var(--green);background:#4ade8022}
+  .opt.wrong{border-color:var(--red);background:#f8717122}
+
+  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--line)}
+  ul.clean{list-style:none}
+  ul.clean li{padding:4px 0}
+  ul.clean li::before{content:"✔ ";color:var(--green)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="big">🧱</div>
+  <h1>Full stack, <span>explained visually</span></h1>
+  <p>How a frontend, a backend, a database and the infrastructure under them all fit together into one working app. This guide stays tool-agnostic — it is about the shape of the system, not any one framework.</p>
+</header>
+
+<nav>
+  <a href="#what">What</a><a href="#map">Map</a><a href="#flow">Request flow</a>
+  <a href="#frontend">Frontend</a><a href="#api">API</a><a href="#backend">Backend</a>
+  <a href="#database">Database</a><a href="#auth">Auth</a><a href="#infra">Deploy</a>
+  <a href="#testing">Testing</a><a href="#patterns">Patterns</a><a href="#cheat">Cheat sheet</a>
+  <a href="#quiz">Quiz</a><a href="#path">Roadmap</a>
+</nav>
+
+<main>
+
+<!-- 1 -->
+<section id="what">
+  <h2><span class="n">1</span>What is "full stack"?</h2>
+  <p class="lead">A full-stack app is just a few cooperating layers, each with one job. "Full stack" means you can work across all of them, not that you must use any particular framework.</p>
+  <div class="grid g3">
+    <div class="card"><div class="big">🎨</div><b>Frontend</b><p class="lead" style="margin:6px 0 0">What the user sees and clicks. Turns data into a screen, and clicks into requests.</p></div>
+    <div class="card"><div class="big">🧠</div><b>Backend</b><p class="lead" style="margin:6px 0 0">Receives requests, applies the rules of the app, and decides what should happen.</p></div>
+    <div class="card"><div class="big">🗄️</div><b>Database</b><p class="lead" style="margin:6px 0 0">Keeps the data safe between visits, so it is still there tomorrow.</p></div>
+  </div>
+  <div class="callout">This guide is deliberately tool-agnostic: it talks about <b>roles</b> (a UI framework, a relational database) instead of naming one product, so it applies whether you end up using React, Vue, Django, Rails, Postgres or anything else.</div>
+</section>
+
+<!-- 2 -->
+<section id="map">
+  <h2><span class="n">2</span>The full-stack map</h2>
+  <p class="lead">Six layers, stacked the way a request actually travels: down from the client to storage, and back up again. Click a layer to see its job and the categories of tools that fill it.</p>
+  <div class="stack" id="mapStack"></div>
+</section>
+
+<!-- 3 -->
+<section id="flow">
+  <h2><span class="n">3</span>A request's journey</h2>
+  <p class="lead">Same six layers, now watch one user action move through all of them. Press the button and follow the log.</p>
+  <div class="flow" id="flowDiagram"></div>
+  <div class="btnrow">
+    <button class="primary" onclick="runFlow()">▶ Send a request</button>
+    <button onclick="resetFlow()">Reset</button>
+  </div>
+  <div class="log" id="flowLog">Press "Send a request" to see one click travel all the way down to the database and back.</div>
+</section>
+
+<!-- 4 -->
+<section id="frontend">
+  <h2><span class="n">4</span>Frontend layer</h2>
+  <p class="lead">Everything that runs in the user's browser or app, before a request even leaves the device.</p>
+  <div class="grid g2">
+    <div class="card"><b>🖼️ Rendering</b><p class="lead" style="margin:6px 0 0">Turning data into visible HTML: pages, components, lists, forms.</p></div>
+    <div class="card"><b>🧩 State</b><p class="lead" style="margin:6px 0 0">Tracking what the user is doing right now — what is open, selected, typed, loading.</p></div>
+    <div class="card"><b>🎨 Styling</b><p class="lead" style="margin:6px 0 0">Layout, spacing, color, responsiveness — making it usable and consistent.</p></div>
+    <div class="card"><b>📦 Build &amp; bundle</b><p class="lead" style="margin:6px 0 0">Combining and optimizing source files into what the browser actually downloads.</p></div>
+  </div>
+  <div class="callout go">Curious how one popular approach implements rendering modes and routing? See <code>nextjs learing mockups/nextjs-explained.html</code> in this collection — one example approach, not the only one.</div>
+</section>
+
+<!-- 5 -->
+<section id="api">
+  <h2><span class="n">5</span>APIs &amp; communication</h2>
+  <p class="lead">The frontend and backend usually run as separate programs. An API is the agreed contract that lets them talk without knowing each other's internals.</p>
+  <div class="grid g2">
+    <div class="card">
+      <b>Request / response shape</b>
+      <p class="lead" style="margin:6px 0 0">The client sends a request (what it wants, maybe some data). The server sends back a response (a status and, usually, data) — almost always as <b>JSON</b> today.</p>
+    </div>
+    <div class="card">
+      <b>REST-style vs real-time</b>
+      <p class="lead" style="margin:6px 0 0">Most APIs are <b>request/response</b>: ask, wait, get an answer. Some use <b>webhooks</b> (the server pushes a message when something happens) or <b>websockets</b> (an open two-way channel) for live updates.</p>
+    </div>
+  </div>
+  <div class="callout go">Deep dive on methods, status codes, headers and the request/response cycle: see <code>http learing mockups/http-explained.html</code>.</div>
+</section>
+
+<!-- 6 -->
+<section id="backend">
+  <h2><span class="n">6</span>Backend layer</h2>
+  <p class="lead">The program that receives API requests, applies the app's rules, and talks to the database on the frontend's behalf.</p>
+  <div class="grid g2">
+    <div class="card"><b>🧭 Routing</b><p class="lead" style="margin:6px 0 0">Matching an incoming request (method + path) to the code that should handle it.</p></div>
+    <div class="card"><b>⚙️ Business logic</b><p class="lead" style="margin:6px 0 0">The actual rules of the app: can this user do this? What should happen next?</p></div>
+    <div class="card"><b>🔁 Services</b><p class="lead" style="margin:6px 0 0">Reusable pieces of logic (billing, email, search) the routes call into.</p></div>
+    <div class="card"><b>🕒 Background jobs</b><p class="lead" style="margin:6px 0 0">Work that should not block the response: sending an email, resizing an image, a nightly report.</p></div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="database">
+  <h2><span class="n">7</span>Data &amp; storage</h2>
+  <p class="lead">Different kinds of data fit different kinds of storage. Most real apps use more than one.</p>
+  <div class="analogy">
+    <div class="card box"><div class="big">🗂️</div><b>Relational (SQL)</b><br><small>Structured rows in tables with defined relationships. Great when data has clear structure, like orders linked to customers.</small></div>
+    <div class="arrow">+</div>
+    <div class="card box"><div class="big">🗒️</div><b>Document / NoSQL</b><br><small>Flexible, loosely structured records. Great when the shape of data varies or changes often.</small></div>
+    <div class="arrow">+</div>
+    <div class="card box"><div class="big">⚡</div><b>Cache</b><br><small>Fast in-memory storage for data you keep re-reading, so you do not hit the main database every time.</small></div>
+  </div>
+  <table style="margin-top:18px">
+    <thead><tr><th>Type</th><th>Good fit for</th></tr></thead>
+    <tbody>
+      <tr><td>Relational (SQL)</td><td>Structured data with relationships: orders, accounts, inventory</td></tr>
+      <tr><td>Document / NoSQL</td><td>Flexible or fast-changing data shapes: content, logs, user profiles</td></tr>
+      <tr><td>In-memory cache</td><td>Data read very often that is expensive to recompute</td></tr>
+      <tr><td>Object / file storage</td><td>Large files: images, videos, backups, exports</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 8 -->
+<section id="auth">
+  <h2><span class="n">8</span>Auth &amp; security basics</h2>
+  <p class="lead">How an app remembers "you are logged in" across many separate requests.</p>
+  <div class="flow">
+    <div class="step"><b>1. Login</b><small>User submits credentials</small></div><div class="ar">➜</div>
+    <div class="step"><b>2. Check</b><small>Backend verifies them</small></div><div class="ar">➜</div>
+    <div class="step"><b>3. Issue</b><small>A session or token is created</small></div><div class="ar">➜</div>
+    <div class="step"><b>4. Reuse</b><small>Sent with every later request</small></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><b>Session-based</b><p class="lead" style="margin:6px 0 0">The server keeps a record of who is logged in and gives the browser a small id (a cookie) that points to it.</p></div>
+    <div class="card"><b>Token-based</b><p class="lead" style="margin:6px 0 0">The server signs a token (such as a JWT) and hands it to the client, which stores it and sends it back with each request. The server does not need to remember it.</p></div>
+  </div>
+  <div class="callout go">Deep dive on HTTPS and the TLS handshake that keeps all of this safe in transit: see <code>http learing mockups/http-explained.html</code>.</div>
+</section>
+
+<!-- 9 -->
+<section id="infra">
+  <h2><span class="n">9</span>Deployment &amp; infrastructure</h2>
+  <p class="lead">How code on a laptop ends up running, reliably, on the internet.</p>
+  <div class="flow">
+    <div class="step"><div class="big">📝</div><b>Code</b><small>Committed to version control</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">🏗️</div><b>Build</b><small>Compiled / bundled</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">✅</div><b>Test</b><small>Automated checks run</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">📦</div><b>Package</b><small>Often a container image</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">🚀</div><b>Deploy</b><small>Shipped to a server</small></div><div class="ar">➜</div>
+    <div class="step"><div class="big">🌍</div><b>Serve</b><small>Handles real traffic</small></div>
+  </div>
+  <div class="callout ok">Running this build → test → deploy sequence automatically on every code change is what "CI/CD" (Continuous Integration / Continuous Deployment) means.</div>
+  <div class="callout go">Deep dive on packaging an app so it runs the same everywhere: see <code>docker learing mockups/docker-explained.html</code>.</div>
+</section>
+
+<!-- 10 -->
+<section id="testing">
+  <h2><span class="n">10</span>Testing across the stack</h2>
+  <p class="lead">Click a layer of the pyramid. Lower layers are faster and cheaper to run; higher layers are slower but closer to what a real user experiences.</p>
+  <div class="pyramid" id="pyramid"></div>
+  <div class="card" id="pyramidInfo" style="margin-top:14px"><span class="empty">Select a layer above.</span></div>
+  <div class="callout go">Deep dive on automated browser testing (and how an end-to-end test actually drives a page): see <code>playwright learing mockups/playwright-python-explained.html</code>.</div>
+</section>
+
+<!-- 11 -->
+<section id="patterns">
+  <h2><span class="n">11</span>Architecture patterns</h2>
+  <p class="lead">The same six layers can be arranged a few different ways. Switch between them.</p>
+  <div class="tabs" id="patternTabs"></div>
+  <div class="card">
+    <p class="lead" id="patternDesc" style="margin:0 0 10px"></p>
+    <div class="flow" id="patternFlow"></div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section id="cheat">
+  <h2><span class="n">12</span>Glossary cheat sheet</h2>
+  <p class="lead">Search or filter by category.</p>
+  <input class="search" id="q" placeholder="Search terms, e.g. cache, token, container...">
+  <div class="tabs" id="cats"></div>
+  <div class="card" style="padding:6px 10px"><table><thead><tr><th>Term</th><th>What it means</th></tr></thead><tbody id="cheatBody"></tbody></table></div>
+</section>
+
+<!-- 13 -->
+<section id="quiz">
+  <h2><span class="n">13</span>Quick quiz</h2>
+  <p class="lead">Check what you learned.</p>
+  <div class="card" id="quizBox"></div>
+</section>
+
+<!-- 14 -->
+<section id="path">
+  <h2><span class="n">14</span>Your learning roadmap</h2>
+  <p class="lead">Tick items as you go. Progress is saved in your browser. Some steps link to a deeper mockup in this collection.</p>
+  <div class="card"><ul id="road" style="list-style:none"></ul>
+    <div style="margin-top:12px;background:var(--panel2);border-radius:999px;height:12px;overflow:hidden"><div id="bar" style="height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--teal));transition:.3s"></div></div>
+    <small class="lead" id="pct"></small>
+  </div>
+  <div class="callout ok" style="margin-top:16px"><b>How to use this:</b> you do not need to master every layer before building something. Pick one small project idea, and build it one layer at a time using the map above as your checklist.</div>
+</section>
+
+</main>
+<footer>Full stack learning mockup · open this file in any browser · no internet needed</footer>
+
+<script>
+/* ---------- map layers ---------- */
+const layers=[
+ {id:'client',chip:'#93a1c0',icon:'💻',title:'Client',role:'The device making the request: a browser, a mobile app, or another service calling in.',cats:['Browser / mobile app','Local/offline cache','User input handling'],link:null},
+ {id:'frontend',chip:'#4ade80',icon:'🎨',title:'Frontend',role:'Turns data into something a person can see and interact with, and turns their actions into requests.',cats:['UI framework or library','State management','Styling approach','Build / bundler tool'],link:{text:'Curious how one popular approach implements rendering modes? See the Next.js mockup — one example approach, not the only one.',path:'../nextjs learing mockups/nextjs-explained.html'}},
+ {id:'api',chip:'#fbbf24',icon:'🔌',title:'API layer',role:'The contract between frontend and backend: what requests look like, and what responses come back.',cats:['REST-style endpoints','Real-time (webhooks / websockets)','JSON data format','Auth headers / tokens'],link:{text:'Deep dive: HTTP methods, status codes and headers — see the HTTP mockup.',path:'../http learing mockups/http-explained.html'}},
+ {id:'backend',chip:'#38bdf8',icon:'🧠',title:'Backend',role:'Runs business logic, talks to the database, and decides what the response should contain.',cats:['Request routing','Business logic / services','Background jobs / queues','Server-side validation'],link:null},
+ {id:'database',chip:'#a78bfa',icon:'🗄️',title:'Database',role:'Stores and retrieves the application data reliably, across restarts and over years.',cats:['Relational (SQL) database','Document / NoSQL store','In-memory cache','Object / file storage'],link:null},
+ {id:'infra',chip:'#22d3b6',icon:'☁️',title:'Infrastructure',role:'Builds, packages, deploys and serves the whole system to the world, and keeps it running.',cats:['Hosting / servers','Containers','CDN','CI/CD pipeline'],link:{text:'Deep dive: containers and the Docker workflow — see the Docker mockup.',path:'../docker learing mockups/docker-explained.html'}},
+];
+const mapStack=document.getElementById('mapStack');
+layers.forEach((l,i)=>{
+ if(i>0){const ar=document.createElement('div');ar.className='maparrow';ar.textContent='⇅';mapStack.appendChild(ar)}
+ const d=document.createElement('div');d.className='layer';d.style.setProperty('--chip',l.chip);
+ d.innerHTML=`<div class="layer-head"><span class="layer-chip"></span><span class="big">${l.icon}</span><b>${l.title}</b><span class="car">▸</span></div>
+  <div class="layer-body"><div class="layer-body-in">
+   <p class="lead" style="margin:10px 0 0">${l.role}</p>
+   <div class="catlist">${l.cats.map(c=>`<span>${c}</span>`).join('')}</div>
+   ${l.link?`<div class="callout go" style="margin-top:10px">${l.link.text}<br><code>${l.link.path.replace('../','')}</code></div>`:''}
+  </div></div>`;
+ d.querySelector('.layer-head').onclick=()=>{
+  const open=d.classList.contains('active');
+  [...mapStack.querySelectorAll('.layer')].forEach(x=>x.classList.remove('active'));
+  if(!open)d.classList.add('active');
+ };
+ mapStack.appendChild(d);
+});
+
+/* ---------- request flow simulator ---------- */
+const flowIds=['client','frontend','api','backend','database'];
+const flowLabels={client:'Client',frontend:'Frontend',api:'API',backend:'Backend',database:'Database'};
+const fd=document.getElementById('flowDiagram');
+flowIds.forEach((id,i)=>{
+ if(i>0){const ar=document.createElement('div');ar.className='ar';ar.textContent='➜';fd.appendChild(ar)}
+ const s=document.createElement('div');s.className='step';s.id='fnode-'+id;
+ s.innerHTML=`<b>${flowLabels[id]}</b>`;fd.appendChild(s);
+});
+const flowScript=[
+ ['client','User clicks "Save" on the page.'],
+ ['frontend','Frontend builds a request: POST /orders with a JSON body.'],
+ ['api','Request travels over HTTPS to the API endpoint.'],
+ ['backend','Route matches. Business logic validates the input.'],
+ ['database','A row is inserted. The database confirms it was saved.'],
+ ['backend','Backend formats a response payload.'],
+ ['api','Response is sent back as JSON with a 201 Created status.'],
+ ['frontend','Frontend removes the loading spinner and shows the new item.'],
+ ['client','User sees the saved result on screen.'],
+];
+let flowTimer=null,flowStep=0;
+const flowLog=document.getElementById('flowLog');
+function paintFlowNode(active){
+ flowIds.forEach(id=>document.getElementById('fnode-'+id).classList.toggle('active',id===active));
+}
+function resetFlow(){clearTimeout(flowTimer);flowStep=0;flowLog.textContent='Press "Send a request" to see one click travel all the way down to the database and back.';paintFlowNode(null)}
+function runFlow(){
+ clearTimeout(flowTimer);flowStep=0;flowLog.innerHTML='';
+ const tick=()=>{
+  if(flowStep>=flowScript.length){paintFlowNode(null);return}
+  const [node,msg]=flowScript[flowStep];
+  paintFlowNode(node);
+  flowLog.innerHTML+=`<span class="you">${flowStep+1}.</span> [${flowLabels[node]}] ${msg}\n`;
+  flowLog.scrollTop=flowLog.scrollHeight;
+  flowStep++;flowTimer=setTimeout(tick,650);
+ };
+ tick();
+}
+
+/* ---------- testing pyramid ---------- */
+const pyramid=[
+ {cls:'e2e',label:'End-to-end',short:'Top of the pyramid',info:'Drives the whole app like a real user, from the browser through the backend to the database. Closest to reality, but slower and more brittle. Run fewer of these.',ex:'Example: open the site, log in, add an item to cart, check out, confirm the order appears.'},
+ {cls:'integration',label:'Integration',short:'Middle of the pyramid',info:'Checks that two or more real pieces work together, for example a backend route talking to a real test database.',ex:'Example: call the "create order" endpoint and check a row actually appears in the database.'},
+ {cls:'unit',label:'Unit',short:'Base of the pyramid',info:'Tests one small function or piece of logic in isolation, with everything else faked. Fast and cheap, so you write the most of these.',ex:'Example: a function that calculates a discount returns the right number for given inputs.'},
+];
+const pyr=document.getElementById('pyramid'),pyrInfo=document.getElementById('pyramidInfo');
+pyramid.forEach(p=>{
+ const r=document.createElement('div');r.className='row '+p.cls;r.innerHTML=`${p.label}<small>${p.short}</small>`;
+ r.onclick=()=>{[...pyr.children].forEach(x=>x.classList.remove('active'));r.classList.add('active');
+  pyrInfo.innerHTML=`<b>${p.label} tests</b><p style="margin:6px 0">${p.info}</p><p class="lead" style="margin:0">${p.ex}</p>`};
+ pyr.appendChild(r);
+});
+
+/* ---------- architecture patterns ---------- */
+const patterns=[
+ {id:'mono',label:'Monolith',desc:'Frontend, backend and business logic ship as one deployable application talking to one database. Simple to build and deploy; everything scales together.',
+  steps:[['🎨','Frontend'],['🧠','Backend logic'],['🗄️','Database']]},
+ {id:'micro',label:'Microservices',desc:'The backend is split into several small, independently deployable services behind a shared entry point. Each service can be built, scaled and deployed on its own.',
+  steps:[['🎨','Frontend'],['🚪','API gateway'],['🧠','Order service'],['🧠','User service'],['🗄️','Databases']]},
+ {id:'server',label:'Serverless / JAMstack',desc:'A static or pre-built frontend is served from a CDN. Backend logic runs as small on-demand functions that start up only when called, instead of one always-on server.',
+  steps:[['🌍','Static frontend (CDN)'],['⚡','On-demand functions'],['🗄️','Managed database']]},
+];
+const ptabs=document.getElementById('patternTabs'),pdesc=document.getElementById('patternDesc'),pflow=document.getElementById('patternFlow');
+function paintPattern(p){
+ [...ptabs.children].forEach(b=>b.classList.toggle('on',b.dataset.id===p.id));
+ pdesc.textContent=p.desc;
+ pflow.innerHTML=p.steps.map((s,i)=>(i>0?'<div class="ar">➜</div>':'')+`<div class="step"><div class="big">${s[0]}</div><b>${s[1]}</b></div>`).join('');
+}
+patterns.forEach((p,i)=>{const b=document.createElement('button');b.textContent=p.label;b.dataset.id=p.id;b.onclick=()=>paintPattern(p);ptabs.appendChild(b)});
+paintPattern(patterns[0]);
+
+/* ---------- cheat sheet / glossary ---------- */
+const cheat=[
+ ['API','API','A contract that lets two systems exchange requests and data without knowing each other’s internals.'],
+ ['API','REST','An API style that uses HTTP methods and resource-style URLs, e.g. GET /orders/12.'],
+ ['API','JSON','A lightweight text format used to exchange structured data between frontend and backend.'],
+ ['API','Endpoint','A specific URL plus method that an API exposes, e.g. POST /login.'],
+ ['API','Webhook','A way for one system to push a message to another when something happens, instead of being asked.'],
+ ['API','Idempotent','An operation that gives the same result no matter how many times it is repeated.'],
+ ['Data','ORM','Object-Relational Mapper: lets backend code work with database rows as regular objects.'],
+ ['Data','Cache','Temporary fast storage that avoids repeating expensive work or queries.'],
+ ['Data','Migration','A versioned script that changes a database’s structure safely over time.'],
+ ['Data','Session','A server-side record of a logged-in user’s state, usually referenced by a cookie.'],
+ ['Data','Token (JWT)','A signed piece of data the client holds and sends to prove who it is.'],
+ ['Infra','CDN','Content Delivery Network: serves static files from locations physically close to the user.'],
+ ['Infra','Load balancer','Distributes incoming requests across multiple servers so no single one is overloaded.'],
+ ['Infra','CI/CD','Continuous Integration / Continuous Deployment: automatically test and ship code changes.'],
+ ['Infra','Container','A packaged app plus everything it needs, running the same way everywhere.'],
+ ['Infra','Environment variable','A configuration value (like a password or API key) kept outside the code.'],
+ ['Infra','Latency','The delay between sending a request and receiving a response.'],
+ ['Architecture','Microservice','One small, independently deployable service that does a single job.'],
+ ['Architecture','Monolith','A single deployable unit that contains the whole application.'],
+ ['Architecture','Middleware','Code that runs between a request arriving and the final handler, e.g. an auth check.'],
+];
+const cats=['All',...new Set(cheat.map(c=>c[0]))];let cat='All';
+const catsEl=document.getElementById('cats'),body=document.getElementById('cheatBody'),q=document.getElementById('q');
+function renderCheat(){
+ const t=q.value.toLowerCase();
+ body.innerHTML=cheat.filter(c=>(cat==='All'||c[0]===cat)&&(c[1]+c[2]).toLowerCase().includes(t))
+  .map(c=>`<tr><td><code>${c[1]}</code></td><td>${c[2]}</td></tr>`).join('')||'<tr><td colspan="2" class="empty">No match</td></tr>';
+ [...catsEl.children].forEach(b=>b.classList.toggle('on',b.textContent===cat));
+}
+cats.forEach(c=>{const b=document.createElement('button');b.textContent=c;b.onclick=()=>{cat=c;renderCheat()};catsEl.appendChild(b)});
+q.oninput=renderCheat;renderCheat();
+
+/* ---------- quiz ---------- */
+const quiz=[
+ ['A user clicks "Save". Which layer first decides what should visually happen, like showing a loading spinner?',['Frontend','Backend','Database','Infrastructure'],0],
+ ['What is the main purpose of an API between frontend and backend?',['Store data permanently','Define a contract for how they exchange requests and data','Render HTML','Encrypt all network traffic'],1],
+ ['Which type of database is generally the better fit for data with a fixed structure and clear relationships, like orders linked to customers?',['SQL (relational)','Document / NoSQL store','In-memory cache','Object storage'],0],
+ ['In token-based authentication, where is the proof of login typically held between requests?',['On the server in memory only','In a token held by the client, sent with each request','It is not stored anywhere','In the database only'],1],
+ ['What problem does containerizing a backend app mainly solve?',['Makes the code run faster','Makes the app’s environment consistent across dev, staging and production','Removes the need for a database','Encrypts all traffic'],1],
+ ['In the test pyramid, which kind of test checks the whole flow, frontend through backend to database, like a real user?',['Unit','Integration','End-to-end','Load'],2],
+ ['What is a key difference between a monolith and a microservices architecture?',['A monolith has no database','Microservices has no frontend','A monolith is one deployable unit; microservices are many independently deployable services','There is no real difference'],2],
+];
+let qi=0,score=0;const qb=document.getElementById('quizBox');
+function showQ(){
+ if(qi>=quiz.length){qb.innerHTML=`<div class="big">🎉</div><b>Score: ${score} / ${quiz.length}</b><p class="lead">${score>=5?'Great job! You understand how the layers fit together.':'Good start. Re-read the sections above and try again.'}</p><button class="primary" onclick="qi=0;score=0;showQ()">Try again</button>`;return}
+ const [t,o,a]=quiz[qi];
+ qb.innerHTML=`<div class="tag">Question ${qi+1} of ${quiz.length}</div><h3 style="margin:6px 0 10px">${t}</h3>`+
+  o.map((x,i)=>`<button class="opt" data-i="${i}">${x}</button>`).join('')+'<div id="fb" class="lead"></div>';
+ qb.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+  qb.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(+x.dataset.i===a)x.classList.add('right')});
+  if(+b.dataset.i===a){score++}else b.classList.add('wrong');
+  document.getElementById('fb').innerHTML=(+b.dataset.i===a?'✅ Correct! ':'❌ Not quite. ')+'<button class="primary" onclick="qi++;showQ()">Next</button>';
+ });
+}
+showQ();
+
+/* ---------- roadmap ---------- */
+const road=[
+ 'Understand the client-server model: who asks, who answers',
+ 'Learn what a frontend does (rendering + user interaction), before picking a framework',
+ 'Learn what a backend does (routing + business logic)',
+ 'Understand HTTP basics: methods and status codes — go deeper: http-explained.html',
+ 'Understand how requests find a server: DNS, IP, ports — go deeper: networking-explained.html',
+ 'Learn the difference between SQL and NoSQL databases',
+ 'Understand what an API contract is, and why frontend and backend do not need to know each other’s internals',
+ 'Learn the basics of authentication (sessions vs tokens) and why HTTPS matters',
+ 'Learn what containers solve and why apps are packaged this way — go deeper: docker-explained.html',
+ 'Understand a basic CI/CD pipeline: build, test, deploy',
+ 'Learn why automated testing exists and the unit / integration / end-to-end split — go deeper: playwright-python-explained.html',
+ 'Learn the trade-offs between monolith, microservices and serverless',
+ 'Pick one small project idea and map it onto this diagram end to end',
+];
+let done={};try{done=JSON.parse(localStorage.getItem('fullstackRoad')||'{}')}catch(e){}
+const rl=document.getElementById('road');
+function paintRoad(){
+ const n=road.filter((_,i)=>done[i]).length;
+ document.getElementById('bar').style.width=(n/road.length*100)+'%';
+ document.getElementById('pct').textContent=`${n} of ${road.length} done`;
+}
+road.forEach((t,i)=>{const li=document.createElement('li');li.style.padding='6px 0';
+ li.innerHTML=`<label style="cursor:pointer"><input type="checkbox" ${done[i]?'checked':''}> Step ${i+1}: ${t}</label>`;
+ li.querySelector('input').onchange=e=>{done[i]=e.target.checked;try{localStorage.setItem('fullstackRoad',JSON.stringify(done))}catch(_){}paintRoad()};
+ rl.appendChild(li)});
+paintRoad();
+</script>
+</body>
+</html>
